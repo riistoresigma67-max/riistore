@@ -1053,7 +1053,7 @@ const requestHandler = async (req, res) => {
 
 const server = http.createServer(requestHandler);
 
-if (!process.env.VERCEL) {
+if (require.main === module && !process.env.VERCEL) {
   server.listen(PORT, () => {
     console.log(`=======================================================`);
     console.log(`🚀 RIISTORE CarX Street Store running at:`);
