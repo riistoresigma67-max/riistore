@@ -59,7 +59,7 @@ const defaultProducts = [
     originalPrice: 15000,
     discount: "53%",
     image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
-    stock: 5,
+    stock: 0,
     description: "Paket paling terjangkau untuk langsung balap dengan Level 50 Max dan modal 3 Juta Silver & 3 Ribu Gold.",
     specs: [
       "Silver 3.000.000 (3M)",
@@ -80,7 +80,7 @@ const defaultProducts = [
     originalPrice: 20000,
     discount: "50%",
     image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
-    stock: 5,
+    stock: 0,
     description: "Pilihan favorit racer pemula! Level 50 dengan modal 5 Juta Silver dan 5 Ribu Gold untuk beli mobil impian.",
     specs: [
       "Silver 5.000.000 (5M)",
@@ -101,7 +101,7 @@ const defaultProducts = [
     originalPrice: 30000,
     discount: "50%",
     image: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=800&q=80",
-    stock: 5,
+    stock: 0,
     description: "Paket rekomendasi value terbaik! Modal melimpah 8 Juta Silver dan 8 Ribu Gold dengan semua map unlocked.",
     specs: [
       "Silver 8.000.000 (8M)",
@@ -122,7 +122,7 @@ const defaultProducts = [
     originalPrice: 40000,
     discount: "50%",
     image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
-    stock: 5,
+    stock: 0,
     description: "Paket Pro dengan modal besar 12 Juta Silver dan 12 Ribu Gold. Bebas modifikasi mesin dan bodykit sepuasnya.",
     specs: [
       "Silver 12.000.000 (12M)",
@@ -143,7 +143,7 @@ const defaultProducts = [
     originalPrice: 99000,
     discount: "49%",
     image: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=800&q=80",
-    stock: 5,
+    stock: 0,
     description: "PAKET TERTINGGI & PALING LENGKAP! Dapat 36 Mobil siap balap/drift + Aksesoris Terbuka + Uang 12M & Gold 12K.",
     specs: [
       "Silver 12.000.000 (12M)",
