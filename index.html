@@ -2050,22 +2050,13 @@ body {
       <div class="modal-body">
         
         <!-- Metrics Stats -->
-        <div class="admin-stats-grid">
-          <div class="stat-card revenue">
-            <div class="stat-title">💰 Total Omset (Lunas)</div>
-            <div class="stat-number" id="dashTotalRevenue">Rp 0</div>
-          </div>
-          <div class="stat-card orders">
-            <div class="stat-title">📦 Total Pesanan Masuk</div>
-            <div class="stat-number" id="dashTotalOrders">0</div>
-          </div>
-          <div class="stat-card stock">
-            <div class="stat-title">🏎️ Total Sisa Stok Akun</div>
-            <div class="stat-number" id="dashTotalStock">0 Unit</div>
-          </div>
-          <div class="stat-card buyers">
-            <div class="stat-title">👥 Pembeli Terdaftar</div>
-            <div class="stat-number" id="dashTotalBuyers">0 User</div>
+        <div class="admin-stats-grid" style="grid-template-columns: 1fr; margin-bottom: 1.25rem;">
+          <div class="stat-card revenue" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px;">
+            <div>
+              <div class="stat-title" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">💰 Total Omset (Lunas)</div>
+              <div class="stat-number" id="dashTotalRevenue" style="font-size: 1.8rem; margin-top: 4px;">Rp 0</div>
+            </div>
+            <div style="font-size: 2.2rem; opacity: 0.8;">📈</div>
           </div>
         </div>
 
@@ -3744,9 +3735,14 @@ async function loadAdminDashboardData() {
     const data = result.data;
 
     // Metrics
-    document.getElementById('dashTotalRevenue').textContent = formatRupiah(data.totalRevenue || 0);
-    document.getElementById('dashTotalOrders').textContent = `${data.totalOrders || 0} (${data.paidOrdersCount || 0} Lunas)`;
-    document.getElementById('dashTotalBuyers').textContent = `${data.totalBuyers || 0} User`;
+    const revEl = document.getElementById('dashTotalRevenue');
+    if (revEl) revEl.textContent = formatRupiah(data.totalRevenue || 0);
+
+    const ordEl = document.getElementById('dashTotalOrders');
+    if (ordEl) ordEl.textContent = `${data.totalOrders || 0} (${data.paidOrdersCount || 0} Lunas)`;
+
+    const buyEl = document.getElementById('dashTotalBuyers');
+    if (buyEl) buyEl.textContent = `${data.totalBuyers || 0} User`;
 
     // Calculate real-time stock per package and grand total directly from synced products
     let grandStock = 0;
@@ -3758,7 +3754,9 @@ async function loadAdminDashboardData() {
         if (pill) pill.textContent = `${currentStock} Unit`;
       });
     }
-    document.getElementById('dashTotalStock').textContent = `${grandStock} Unit`;
+
+    const stockEl = document.getElementById('dashTotalStock');
+    if (stockEl) stockEl.textContent = `${grandStock} Unit`;
 
     // Tab 1: Render Stock Management Table
     const stockTbody = document.getElementById('adminStockTableBody');
