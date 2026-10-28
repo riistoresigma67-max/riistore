@@ -1,0 +1,38 @@
+[
+  {
+    "id": "user-admin-01",
+    "username": "admin",
+    "email": "admin",
+    "password": "admin123",
+    "role": "admin",
+    "whatsapp": "6281234567890",
+    "createdAt": "2026-10-29T00:00:00.000Z"
+  },
+  {
+    "id": "user-1793209673570-776",
+    "username": "racer_alif",
+    "email": "alif@example.com",
+    "password": "password123",
+    "whatsapp": "081299990000",
+    "role": "buyer",
+    "createdAt": "2026-10-28T17:47:53.570Z"
+  },
+  {
+    "id": "user-1793209890581-557",
+    "username": "buyer_647",
+    "email": "buyer_647@gmail.com",
+    "password": "password123",
+    "whatsapp": "081288887777",
+    "role": "buyer",
+    "createdAt": "2026-10-28T17:51:30.581Z"
+  },
+  {
+    "id": "user-1793220528967-772",
+    "username": "ywiwh",
+    "email": "usagxxxx99@gmail.com",
+    "password": "Heri12345",
+    "whatsapp": "0851318161",
+    "role": "buyer",
+    "createdAt": "2026-10-28T20:48:48.967Z"
+  }
+]

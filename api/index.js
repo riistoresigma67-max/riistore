@@ -862,14 +862,73 @@ const requestHandler = async (req, res) => {
 
   // GET /api/order/status?invoice=...
   if (pathname === '/api/order/status' && method === 'GET') {
-    const invoice = parsedUrl.query.invoice;
+    const invoice = (parsedUrl.query.invoice || '').trim();
     if (!invoice) {
       sendJson(res, 400, { success: false, message: 'Invoice harus dicantumkan' });
       return;
     }
 
+    const config = readJsonFile(CONFIG_FILE, defaultConfig);
+    const apiKey = (config.paymentGateway && config.paymentGateway.apiKey) || 'sk_live_d19aa0476d7bbb7bbca4d4f4699e85ce9561f867c7e44cf5';
+
     const orders = readJsonFile(ORDERS_FILE, []);
-    const orderIndex = orders.findIndex(o => o.invoice.toUpperCase() === invoice.toUpperCase());
+    let orderIndex = orders.findIndex(o => o.invoice.toUpperCase() === invoice.toUpperCase());
+
+    // If order not found in local memory/file (e.g. across Vercel instances or server restart)
+    if (orderIndex === -1 && apiKey) {
+      try {
+        const pRes = await fetch(`https://paymenku.com/api/v1/transactions?reference_id=${encodeURIComponent(invoice)}`, {
+          headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' }
+        });
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          if (pData.status === 'success' && Array.isArray(pData.data) && pData.data.length > 0) {
+            const trx = pData.data[0];
+            const products = readJsonFile(PRODUCTS_FILE, defaultProducts);
+            const trxAmount = Math.round(Number(trx.amount) || 0);
+            const matchedProduct = products.find(p => p.price === trxAmount) || products[0];
+            const st = (trx.status || '').toLowerCase();
+            const isTrxPaid = st === 'paid' || st === 'success' || st === 'settlement' || st === 'completed';
+
+            const reconstructed = {
+              invoice: invoice,
+              productId: matchedProduct.id,
+              productName: matchedProduct.name,
+              price: matchedProduct.price,
+              uniqueCode: 0,
+              totalPayment: trxAmount || matchedProduct.price,
+              paymentMethod: 'QRIS',
+              paymentDetail: {
+                type: 'QRIS',
+                gateway: 'PAYMENKU',
+                trxId: trx.trx_id,
+                payUrl: trx.pay_url || `https://paymenku.com/pay/${trx.trx_id}`,
+                title: 'QRIS Dinamis Asli (Semua Bank & E-Wallet)',
+                subTitle: 'Scan menggunakan DANA, GoPay, OVO, ShopeePay, BCA, BRI, Mandiri, dll.',
+                fee: 0
+              },
+              customerWhatsapp: trx.customer_email || 'Buyer',
+              customerEmail: trx.customer_email || '-',
+              buyerId: trx.customer_name || 'guest',
+              buyerUsername: trx.customer_name || 'Pembeli',
+              platform: 'Android & iOS',
+              status: isTrxPaid ? 'PAID' : 'UNPAID',
+              createdAt: trx.created_at || new Date().toISOString(),
+              expiredAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+              paidAt: isTrxPaid ? (trx.paid_at || new Date().toISOString()) : null,
+              accountDetails: isTrxPaid ? assignAccountToOrder(matchedProduct.id, invoice, trx.customer_email || 'Buyer', 'Android', matchedProduct.name) : null
+            };
+
+            orders.unshift(reconstructed);
+            writeJsonFile(ORDERS_FILE, orders);
+            orderIndex = 0;
+            console.log(`[Paymenku Auto-Sync] Reconstructed invoice ${invoice} from Paymenku API. Status: ${reconstructed.status}`);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to query Paymenku for missing invoice:', err.message);
+      }
+    }
 
     if (orderIndex === -1) {
       sendJson(res, 404, { success: false, message: 'Invoice tidak ditemukan' });
@@ -878,29 +937,77 @@ const requestHandler = async (req, res) => {
 
     const order = orders[orderIndex];
 
-    // If still UNPAID and has Paymenku trx_id, check Paymenku live status
-    if (order.status !== 'PAID' && order.paymentDetail && order.paymentDetail.trxId) {
-      try {
-        const checkRes = await fetch(`https://paymenku.com/pay/${order.paymentDetail.trxId}/status`);
-        if (checkRes.ok) {
-          const statusData = await checkRes.json();
-          if (statusData && (statusData.status === 'paid' || statusData.status === 'success')) {
-            order.status = 'PAID';
-            order.paidAt = new Date().toISOString();
-            order.accountDetails = assignAccountToOrder(
-              order.productId,
-              order.invoice,
-              order.customerWhatsapp,
-              order.platform,
-              order.productName
-            );
-            orders[orderIndex] = order;
-            writeJsonFile(ORDERS_FILE, orders);
-            console.log(`[Paymenku Polling Auto-Detect] Invoice ${order.invoice} LUNAS! Akun CarX Street terkirim.`);
+    // If still UNPAID, check Paymenku live status with 3 robust fallbacks
+    if (order.status !== 'PAID') {
+      let isConfirmedPaid = false;
+      const trxId = order.paymentDetail && order.paymentDetail.trxId;
+
+      // Check 1: Direct Paymenku public status endpoint
+      if (trxId) {
+        try {
+          const checkRes = await fetch(`https://paymenku.com/pay/${trxId}/status`);
+          if (checkRes.ok) {
+            const sData = await checkRes.json();
+            const st = (sData.status || '').toLowerCase();
+            if (st === 'paid' || st === 'success' || st === 'settlement' || st === 'completed') {
+              isConfirmedPaid = true;
+            }
           }
-        }
-      } catch (err) {
-        // Ignore network polling error
+        } catch (e) {}
+      }
+
+      // Check 2: Paymenku authenticated transactions list by reference_id (Invoice)
+      if (!isConfirmedPaid && apiKey) {
+        try {
+          const checkRes = await fetch(`https://paymenku.com/api/v1/transactions?reference_id=${encodeURIComponent(order.invoice)}`, {
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' }
+          });
+          if (checkRes.ok) {
+            const sData = await checkRes.json();
+            if (sData.status === 'success' && Array.isArray(sData.data) && sData.data.length > 0) {
+              const st = (sData.data[0].status || '').toLowerCase();
+              if (st === 'paid' || st === 'success' || st === 'settlement' || st === 'completed') {
+                isConfirmedPaid = true;
+                if (!order.paymentDetail.trxId && sData.data[0].trx_id) {
+                  order.paymentDetail.trxId = sData.data[0].trx_id;
+                }
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Check 3: Paymenku authenticated transactions list by trx_id
+      if (!isConfirmedPaid && trxId && apiKey) {
+        try {
+          const checkRes = await fetch(`https://paymenku.com/api/v1/transactions?trx_id=${encodeURIComponent(trxId)}`, {
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' }
+          });
+          if (checkRes.ok) {
+            const sData = await checkRes.json();
+            if (sData.status === 'success' && Array.isArray(sData.data) && sData.data.length > 0) {
+              const st = (sData.data[0].status || '').toLowerCase();
+              if (st === 'paid' || st === 'success' || st === 'settlement' || st === 'completed') {
+                isConfirmedPaid = true;
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (isConfirmedPaid) {
+        order.status = 'PAID';
+        order.paidAt = new Date().toISOString();
+        order.accountDetails = assignAccountToOrder(
+          order.productId,
+          order.invoice,
+          order.customerWhatsapp,
+          order.platform,
+          order.productName
+        );
+        orders[orderIndex] = order;
+        writeJsonFile(ORDERS_FILE, orders);
+        console.log(`[Paymenku Polling Auto-Detect] Invoice ${order.invoice} LUNAS! Akun CarX Street terkirim.`);
       }
     }
 
@@ -927,14 +1034,18 @@ const requestHandler = async (req, res) => {
   if (pathname === '/api/order/track' && method === 'GET') {
     const query = (parsedUrl.query.query || '').trim().toLowerCase();
     if (!query) {
-      sendJson(res, 400, { success: false, message: 'Masukkan nomor WhatsApp atau No Invoice' });
+      sendJson(res, 400, { success: false, message: 'Masukkan nomor WhatsApp, Email, atau No Invoice' });
       return;
     }
 
     const orders = readJsonFile(ORDERS_FILE, []);
     const matched = orders.filter(o => 
-      o.invoice.toLowerCase() === query || 
-      o.customerWhatsapp.replace(/\D/g, '').includes(query.replace(/\D/g, ''))
+      (o.invoice && o.invoice.toLowerCase() === query) || 
+      (o.customerEmail && o.customerEmail.toLowerCase().includes(query)) ||
+      (o.customerWhatsapp && (
+        o.customerWhatsapp.toLowerCase().includes(query) ||
+        o.customerWhatsapp.replace(/\D/g, '').includes(query.replace(/\D/g, ''))
+      ))
     );
 
     sendJson(res, 200, { success: true, data: matched });
@@ -980,10 +1091,10 @@ const requestHandler = async (req, res) => {
     return;
   }
 
-  // POST /api/payment/webhook (Paymenku Webhook Callback)
-  if (pathname === '/api/payment/webhook' && method === 'POST') {
+  // POST/GET /api/payment/webhook (Paymenku Webhook Callback)
+  if (pathname === '/api/payment/webhook' && (method === 'POST' || method === 'GET')) {
     try {
-      const body = await getRequestBody(req);
+      const body = method === 'POST' ? await getRequestBody(req) : parsedUrl.query;
       console.log('--- Paymenku Webhook Received ---', JSON.stringify(body));
 
       const invoice = body.reference_id || body.reference || body.merchant_ref || body.order_id || body.invoice;
@@ -993,12 +1104,45 @@ const requestHandler = async (req, res) => {
       const isPaid = paymentStatus === 'paid' || paymentStatus === 'success' || paymentStatus === 'settlement' || paymentStatus === 'capture' || paymentStatus === 'completed';
 
       const orders = readJsonFile(ORDERS_FILE, []);
-      const orderIndex = orders.findIndex(o => 
+      let orderIndex = orders.findIndex(o => 
         (invoice && o.invoice.toUpperCase() === invoice.toUpperCase()) ||
         (trxId && o.paymentDetail && o.paymentDetail.trxId === trxId)
       );
 
-      if (orderIndex !== -1 && isPaid && orders[orderIndex].status !== 'PAID') {
+      if (orderIndex === -1 && invoice && isPaid) {
+        const products = readJsonFile(PRODUCTS_FILE, defaultProducts);
+        const amount = Math.round(Number(body.amount) || 0);
+        const matchedProduct = products.find(p => p.price === amount) || products[0];
+
+        const reconstructed = {
+          invoice: invoice,
+          productId: matchedProduct.id,
+          productName: matchedProduct.name,
+          price: matchedProduct.price,
+          uniqueCode: 0,
+          totalPayment: amount || matchedProduct.price,
+          paymentMethod: 'QRIS',
+          paymentDetail: {
+            type: 'QRIS',
+            gateway: 'PAYMENKU',
+            trxId: trxId || '',
+            fee: 0
+          },
+          customerWhatsapp: body.customer_email || body.customer_phone || 'Buyer',
+          customerEmail: body.customer_email || '-',
+          buyerId: body.customer_name || 'guest',
+          buyerUsername: body.customer_name || 'Pembeli',
+          platform: 'Android & iOS',
+          status: 'PAID',
+          createdAt: new Date().toISOString(),
+          expiredAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          paidAt: new Date().toISOString(),
+          accountDetails: assignAccountToOrder(matchedProduct.id, invoice, body.customer_email || 'Buyer', 'Android', matchedProduct.name)
+        };
+        orders.unshift(reconstructed);
+        writeJsonFile(ORDERS_FILE, orders);
+        console.log(`[Paymenku Webhook Auto-Create] Invoice ${invoice} LUNAS via Webhook!`);
+      } else if (orderIndex !== -1 && isPaid && orders[orderIndex].status !== 'PAID') {
         orders[orderIndex].status = 'PAID';
         orders[orderIndex].paidAt = new Date().toISOString();
         orders[orderIndex].accountDetails = assignAccountToOrder(

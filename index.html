@@ -1843,6 +1843,16 @@ body {
             <div class="radar-spinner"></div>
             <span>Sistem sedang mendeteksi pembayaran kamu secara otomatis...</span>
           </div>
+
+          <!-- Tombol Cek Manual -->
+          <div style="margin-top: 14px; text-align: center;">
+            <button id="btnManualCheckPayment" onclick="manualCheckPayment()" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 800; font-size: 0.95rem; box-shadow: 0 0 15px rgba(6,182,212,0.4); cursor: pointer;">
+              🔄 SUDAH TRANSFER? KLIK CEK SEKARANG
+            </button>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 6px;">
+              ⚡ Sistem juga memeriksa otomatis setiap 3 detik.
+            </div>
+          </div>
         </div>
 
         <!-- STATE 2: PAID (CREDENTIALS DELIVERED INSTANTLY) -->
@@ -2989,6 +2999,37 @@ function startPaymentPolling(invoice) {
       // Ignore network hiccup during polling
     }
   }, 3000); // Poll every 3 seconds
+}
+
+// Manual Check Payment Trigger
+async function manualCheckPayment() {
+  if (!currentInvoice) return;
+  const btn = document.getElementById('btnManualCheckPayment');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Memeriksa ke server Paymenku...';
+  }
+
+  try {
+    const res = await fetch(`/api/order/status?invoice=${encodeURIComponent(currentInvoice)}`);
+    const data = await res.json();
+    if (data.success && data.data && data.data.status === 'PAID') {
+      if (pollingTimer) clearInterval(pollingTimer);
+      if (countdownInterval) clearInterval(countdownInterval);
+      onPaymentSuccess(data.data);
+      showToast('🎉 Pembayaran berhasil diverifikasi LUNAS!');
+    } else {
+      showToast('Pembayaran belum terdeteksi. Silakan selesaikan scan QRIS terlebih dahulu.');
+    }
+  } catch (err) {
+    showToast('Gagal memeriksa status: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
 }
 
 // On Payment Success Event

@@ -1,0 +1,10 @@
+{
+  "storeName": "RIISTORE",
+  "tagline": "Pusat Jual Beli Akun CarX Street Terpercaya & Otomatis #1",
+  "adminWhatsapp": "6281234567890",
+  "paymentGateway": {
+    "activeProvider": "LIVE_QRIS",
+    "apiKey": "sk_live_d19aa0476d7bbb7bbca4d4f4699e85ce9561f867c7e44cf5",
+    "webhookSecret": "b7cbb6cc7582698603eabe480a1d256b010c76a7e433e4b7d864958ab53b6999"
+  }
+}
