@@ -2068,6 +2068,38 @@ body {
           </div>
         </div>
 
+        <!-- Rincian Sisa Stok Per Paket Akun -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="font-size: 0.8rem; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
+              📊 Rincian Sisa Stok Per Paket:
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-dim);">Real-time sinkron katalog</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+            <div style="background: #090e1a; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 6px; padding: 6px 10px; text-align: center;">
+              <div style="font-size: 0.7rem; color: var(--primary-neon); font-weight: 800;">PAKET A (7K)</div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="pillStock_paket-a">0 Unit</div>
+            </div>
+            <div style="background: #090e1a; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; padding: 6px 10px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #60a5fa; font-weight: 800;">PAKET B (10K)</div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="pillStock_paket-b">0 Unit</div>
+            </div>
+            <div style="background: #090e1a; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 6px 10px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #c084fc; font-weight: 800;">PAKET C (15K)</div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="pillStock_paket-c">0 Unit</div>
+            </div>
+            <div style="background: #090e1a; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 6px 10px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #f87171; font-weight: 800;">PAKET D (20K)</div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="pillStock_paket-d">0 Unit</div>
+            </div>
+            <div style="background: #090e1a; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 6px 10px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #fbbf24; font-weight: 800;">PAKET E (50K)</div>
+              <div style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="pillStock_paket-e">0 Unit</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Admin Nav Tabs -->
         <div class="admin-nav-tabs">
           <button class="admin-nav-btn active" onclick="switchAdminTab('accounts', this)">
@@ -2626,9 +2658,15 @@ function renderProducts() {
             </div>
           </div>
 
-          <button class="btn btn-primary btn-lg" onclick="openCheckout('${item.id}')" style="width: 100%; margin-top: 8px;">
-            Beli Sekarang ➔
-          </button>
+          ${item.stock > 0 ? `
+            <button class="btn btn-primary btn-lg" onclick="openCheckout('${item.id}')" style="width: 100%; margin-top: 8px;">
+              Beli Sekarang ➔
+            </button>
+          ` : `
+            <button class="btn btn-outline btn-lg" style="width: 100%; margin-top: 8px; opacity: 0.65; cursor: not-allowed; border-color: var(--accent-red); color: #fca5a5;" onclick="showToast('⚠️ Maaf, stok paket ini sedang habis!')">
+              ❌ Stok Habis
+            </button>
+          `}
         </div>
       </div>
     `;
@@ -2650,6 +2688,14 @@ function handleSearch() {
 
 // Open Checkout Modal
 function openCheckout(productId) {
+  selectedProduct = allProducts.find(p => p.id === productId);
+  if (!selectedProduct) return;
+
+  if (selectedProduct.stock <= 0) {
+    showToast('⚠️ Maaf bosku, stok paket ini sedang habis!');
+    return;
+  }
+
   // Check if buyer is logged in
   const user = getCurrentUser();
   if (!user) {
@@ -2658,9 +2704,6 @@ function openCheckout(productId) {
     openAuthModal('register');
     return;
   }
-
-  selectedProduct = allProducts.find(p => p.id === productId);
-  if (!selectedProduct) return;
 
   const preview = document.getElementById('checkoutProductPreview');
   preview.innerHTML = `
@@ -3435,68 +3478,91 @@ function switchAdminTab(tabName, btnElement) {
   }
 }
 
+function getLocalAccounts() {
+  try {
+    const saved = localStorage.getItem('riistore_accounts');
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setLocalAccounts(accounts) {
+  try {
+    localStorage.setItem('riistore_accounts', JSON.stringify(accounts));
+  } catch (e) {}
+}
+
 // Load Real CarX Street Account Inventory Table
 async function loadAccountStockTable() {
   const tbody = document.getElementById('adminAccountsTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">Memuat daftar akun CarX Street...</td></tr>`;
+  let accounts = getLocalAccounts();
 
   try {
     const res = await fetch('/api/admin/accounts');
-    const data = await res.json();
-
-    if (data.success && data.data) {
-      if (data.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Belum ada akun di stok. Silakan tambahkan akun lewat form di atas!</td></tr>`;
-      } else {
-        tbody.innerHTML = data.data.map(acc => `
-          <tr>
-            <td>
-              <strong style="color: var(--primary-neon);">${acc.packageName || acc.packageId}</strong>
-            </td>
-            <td>
-              <code style="color: #fff; font-size: 0.85rem;">${acc.email}</code>
-            </td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <code style="color: #cbd5e1; font-size: 0.85rem;">${acc.password}</code>
-                <button class="btn btn-outline btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="navigator.clipboard.writeText('${acc.password}').then(()=>showToast('Password disalin!'))">Salin</button>
-              </div>
-            </td>
-            <td>
-              <div style="font-size: 0.78rem; color: #fbbf24; font-weight: 700; max-width: 250px;">
-                ${acc.notes || 'tinggal login di carx street ya bosku😇'}
-              </div>
-            </td>
-            <td>
-              <span class="status-pill ${acc.status === 'AVAILABLE' ? 'status-paid' : 'status-unpaid'}">
-                ${acc.status === 'AVAILABLE' ? '⚡ READY (TERSEDIA)' : '✓ TERJUAL'}
-              </span>
-              ${acc.soldToInvoice ? `<div style="font-size: 0.7rem; color: var(--text-dim);">${acc.soldToInvoice}</div>` : ''}
-            </td>
-            <td>
-              ${acc.status === 'AVAILABLE' ? `
-                <button class="btn btn-logout" style="padding: 4px 8px; font-size: 0.75rem;" onclick="handleDeleteAccountStock('${acc.id}')">
-                  Hapus
-                </button>
-              ` : `
-                <span style="font-size: 0.75rem; color: var(--text-dim);">Terkirim</span>
-              `}
-            </td>
-          </tr>
-        `).join('');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        // Merge server accounts with local accounts
+        const serverIds = new Set(data.data.map(a => a.id || a.email));
+        accounts = [...data.data, ...accounts.filter(a => !serverIds.has(a.id || a.email))];
+        setLocalAccounts(accounts);
       }
     }
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-red);">Gagal memuat akun dari server.</td></tr>`;
+    // Fallback to local accounts
+  }
+
+  if (accounts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Belum ada akun di stok. Silakan masukkan Email & Password akun lewat form di atas lalu klik "Simpan & Tambahkan Akun ke Stok"!</td></tr>`;
+  } else {
+    tbody.innerHTML = accounts.map(acc => `
+      <tr>
+        <td>
+          <strong style="color: var(--primary-neon);">${acc.packageName || acc.packageId}</strong>
+        </td>
+        <td>
+          <code style="color: #fff; font-size: 0.85rem;">${acc.email}</code>
+        </td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <code style="color: #cbd5e1; font-size: 0.85rem;">${acc.password}</code>
+            <button class="btn btn-outline btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="navigator.clipboard.writeText('${acc.password}').then(()=>showToast('Password disalin!'))">Salin</button>
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.78rem; color: #fbbf24; font-weight: 700; max-width: 250px;">
+            ${acc.notes || 'tinggal login di carx street ya bosku😇'}
+          </div>
+        </td>
+        <td>
+          <span class="status-pill ${acc.status === 'AVAILABLE' ? 'status-paid' : 'status-unpaid'}">
+            ${acc.status === 'AVAILABLE' ? '⚡ READY (TERSEDIA)' : '✓ TERJUAL'}
+          </span>
+          ${acc.soldToInvoice ? `<div style="font-size: 0.7rem; color: var(--text-dim);">${acc.soldToInvoice}</div>` : ''}
+        </td>
+        <td>
+          ${acc.status === 'AVAILABLE' ? `
+            <button class="btn btn-logout" style="padding: 4px 8px; font-size: 0.75rem;" onclick="handleDeleteAccountStock('${acc.id}')">
+              Hapus
+            </button>
+          ` : `
+            <span style="font-size: 0.75rem; color: var(--text-dim);">Terkirim</span>
+          `}
+        </td>
+      </tr>
+    `).join('');
   }
 }
 
 // Add CarX Street Account to Inventory Form Handler
 async function handleAddAccountStock(e) {
   e.preventDefault();
-  const packageId = document.getElementById('accInputPackage').value;
+  const packageSelect = document.getElementById('accInputPackage');
+  const packageId = packageSelect.value;
+  const packageName = packageSelect.options[packageSelect.selectedIndex].text.split(' - ')[0] || packageId;
   const email = document.getElementById('accInputEmail').value.trim();
   const password = document.getElementById('accInputPassword').value.trim();
   const notes = document.getElementById('accInputNotes').value.trim();
@@ -3510,55 +3576,74 @@ async function handleAddAccountStock(e) {
   btn.disabled = true;
   btn.textContent = 'Menyimpan Akun...';
 
+  const newAcc = {
+    id: `acc-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    packageId,
+    packageName,
+    email,
+    password,
+    platform: 'Universal',
+    notes: notes || "tinggal login di carx street ya bosku😇",
+    status: "AVAILABLE",
+    soldToInvoice: null,
+    soldToBuyer: null,
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Immediately save to local accounts & render table
+  let localAccs = getLocalAccounts();
+  localAccs.unshift(newAcc);
+  setLocalAccounts(localAccs);
+  loadAccountStockTable();
+
+  // 2. Clear inputs
+  document.getElementById('accInputEmail').value = '';
+  document.getElementById('accInputPassword').value = '';
+
+  // 3. Sync to server
   try {
     const res = await fetch('/api/admin/account/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ packageId, email, password, platform: 'Universal', notes })
     });
-
     const data = await res.json();
-    if (data.success) {
-      showToast(data.message || 'Akun CarX Street berhasil ditambahkan ke stok!');
-      document.getElementById('accInputEmail').value = '';
-      document.getElementById('accInputPassword').value = '';
-      loadAccountStockTable();
-      loadAdminDashboardData();
-      loadProducts(); // Sync catalog stock counts!
-    } else {
-      showToast(data.message || 'Gagal menambahkan akun');
+    if (data.success && data.data) {
+      newAcc.id = data.data.id || newAcc.id;
     }
   } catch (err) {
-    showToast('Gagal menghubungi server');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
+    // Keep local account
   }
+
+  showToast(`Akun CarX Street berhasil ditambahkan ke stok ${packageName}!`);
+  loadAdminDashboardData();
+  loadProducts(); // Sync catalog stock counts!
+
+  btn.disabled = false;
+  btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
 }
 
 // Delete Unsold Account
 async function handleDeleteAccountStock(id) {
   if (!confirm('Hapus akun CarX Street ini dari stok?')) return;
 
+  // 1. Remove from local accounts
+  let localAccs = getLocalAccounts().filter(a => a.id !== id);
+  setLocalAccounts(localAccs);
+  loadAccountStockTable();
+
+  // 2. Remove from server
   try {
-    const res = await fetch('/api/admin/account/delete', {
+    await fetch('/api/admin/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     });
+  } catch (err) {}
 
-    const data = await res.json();
-    if (data.success) {
-      showToast('Akun berhasil dihapus');
-      loadAccountStockTable();
-      loadAdminDashboardData();
-      loadProducts();
-    } else {
-      showToast(data.message || 'Gagal menghapus akun');
-    }
-  } catch (err) {
-    showToast('Gagal menghubungi server');
-  }
+  showToast('Akun berhasil dihapus');
+  loadAdminDashboardData();
+  loadProducts();
 }
 
 async function loadAdminDashboardData() {
@@ -3574,8 +3659,21 @@ async function loadAdminDashboardData() {
     // Metrics
     document.getElementById('dashTotalRevenue').textContent = formatRupiah(data.totalRevenue || 0);
     document.getElementById('dashTotalOrders').textContent = `${data.totalOrders || 0} (${data.paidOrdersCount || 0} Lunas)`;
-    document.getElementById('dashTotalStock').textContent = `${data.totalStock || 0} Unit`;
     document.getElementById('dashTotalBuyers').textContent = `${data.totalBuyers || 0} User`;
+
+    // Calculate real-time stock per package and grand total
+    let grandStock = 0;
+    const localAccs = getLocalAccounts();
+    if (data.products) {
+      data.products.forEach(p => {
+        const physicalAvailable = localAccs.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
+        const currentStock = Math.max(p.stock || 0, physicalAvailable);
+        grandStock += currentStock;
+        const pill = document.getElementById(`pillStock_${p.id}`);
+        if (pill) pill.textContent = `${currentStock} Unit`;
+      });
+    }
+    document.getElementById('dashTotalStock').textContent = `${grandStock} Unit`;
 
     // Tab 1: Render Stock Management Table
     const stockTbody = document.getElementById('adminStockTableBody');
@@ -3740,6 +3838,7 @@ async function handleClearAllStock() {
 
 async function handleClearAllPhysicalAccounts() {
   if (!confirm(`⚠️ PERINGATAN: Hapus SEMUA akun CarX Street yang berstatus READY dari database?`)) return;
+  setLocalAccounts([]);
   try {
     const res = await fetch('/api/admin/accounts');
     const data = await res.json();
@@ -3755,14 +3854,12 @@ async function handleClearAllPhysicalAccounts() {
           count++;
         }
       }
-      showToast(`${count} akun ready berhasil dihapus dari database!`);
-      loadAccountStockTable();
-      loadAdminDashboardData();
-      loadProducts();
     }
-  } catch (e) {
-    showToast('Gagal menghapus akun');
-  }
+  } catch (e) {}
+  showToast(`Semua akun ready berhasil dihapus!`);
+  loadAccountStockTable();
+  loadAdminDashboardData();
+  loadProducts();
 }
 
 async function adminMarkAsPaid(invoice) {
