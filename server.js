@@ -315,8 +315,8 @@ function assignAccountToOrder(productId, invoice, customerWhatsapp, platform, pr
   return delivered;
 }
 
-// Server Request Handler
-const server = http.createServer(async (req, res) => {
+// Server Request Handler Function
+const requestHandler = async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
   const method = req.method;
@@ -514,6 +514,12 @@ const server = http.createServer(async (req, res) => {
 
       if (stock !== undefined) {
         products[pIndex].stock = Math.max(0, parseInt(stock, 10) || 0);
+        // Jika stok dikosongkan ke 0, hapus juga akun status AVAILABLE untuk paket ini agar sinkron 100%
+        if (products[pIndex].stock === 0) {
+          let accounts = readJsonFile(ACCOUNT_STOCK_FILE, []);
+          accounts = accounts.filter(a => !(a.packageId === productId && a.status === 'AVAILABLE'));
+          writeJsonFile(ACCOUNT_STOCK_FILE, accounts);
+        }
       }
       if (price !== undefined) {
         products[pIndex].price = Math.max(1000, parseInt(price, 10) || products[pIndex].price);
@@ -1043,7 +1049,9 @@ const server = http.createServer(async (req, res) => {
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   });
-});
+};
+
+const server = http.createServer(requestHandler);
 
 if (!process.env.VERCEL) {
   server.listen(PORT, () => {
@@ -1055,6 +1063,6 @@ if (!process.env.VERCEL) {
   });
 }
 
-module.exports = server;
+module.exports = requestHandler;
 
 

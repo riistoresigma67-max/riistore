@@ -2599,29 +2599,20 @@ async function loadProducts() {
     const res = await fetch('/api/products');
     if (res.ok) {
       const data = await res.json();
-      allProducts = data.data || data;
-    } else {
-      allProducts = defaultProducts;
+      if (data.success && Array.isArray(data.data)) {
+        allProducts = data.data;
+        renderProducts();
+        return; // SINKRON LANGSUNG DARI SERVER: JANGAN DITIMPA LOCALSTORAGE!
+      }
     }
   } catch (err) {
-    allProducts = defaultProducts;
+    console.warn('Network issue fetching products from server:', err);
   }
 
+  // Fallback hanya jika server offline
   if (!allProducts || allProducts.length === 0) {
     allProducts = defaultProducts;
   }
-
-  // Strict physical accounts sync: count AVAILABLE accounts from local cache
-  try {
-    const localAccs = getLocalAccounts();
-    if (Array.isArray(localAccs)) {
-      allProducts.forEach(p => {
-        // EXACT count of ready accounts for this package. If 0 in database, stock MUST be 0!
-        p.stock = localAccs.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
-      });
-    }
-  } catch (e) {}
-
   renderProducts();
 }
 
@@ -3808,7 +3799,9 @@ async function updateStockFromAdmin(productId) {
     const data = await res.json();
     if (data.success) {
       showToast(data.message);
-      loadAdminDashboardData();
+      await loadAdminDashboardData();
+      await loadAccountStockTable();
+      await loadProducts();
     } else {
       showToast(data.message || 'Gagal update stok');
     }
@@ -3822,6 +3815,8 @@ async function handleClearStock(productId) {
   const stockInput = document.getElementById(`stockInput_${productId}`);
   if (stockInput) stockInput.value = 0;
   await updateStockFromAdmin(productId);
+  await loadAccountStockTable();
+  await loadProducts();
 }
 
 async function handleClearAllStock() {
@@ -3838,8 +3833,9 @@ async function handleClearAllStock() {
     } catch (e) {}
   }
   showToast('Semua stok paket berhasil dikosongkan (0 Unit)!');
-  loadAdminDashboardData();
-  loadProducts();
+  await loadAccountStockTable();
+  await loadAdminDashboardData();
+  await loadProducts();
 }
 
 async function handleClearAllPhysicalAccounts() {
