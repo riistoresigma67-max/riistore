@@ -3686,12 +3686,6 @@ async function handleDeleteAccountStock(id) {
   await loadAdminDashboardData();
   await loadProducts();
 }
-      showToast(data.message || 'Gagal menghapus akun');
-    }
-  } catch (err) {
-    showToast('Gagal menghubungi server');
-  }
-}
 
 async function loadAdminDashboardData() {
   try {
