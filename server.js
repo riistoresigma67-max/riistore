@@ -247,13 +247,18 @@ function getRequestBody(req) {
 }
 
 // Sync products stock with available physical accounts
+// Sync products stock with available physical accounts
 function syncProductStock() {
   const accounts = readJsonFile(ACCOUNT_STOCK_FILE, []);
-  const products = readJsonFile(PRODUCTS_FILE, []);
+  const products = readJsonFile(PRODUCTS_FILE, defaultProducts);
 
   products.forEach(p => {
-    const availableCount = accounts.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
-    p.stock = availableCount;
+    const physicalForPackage = accounts.filter(a => a.packageId === p.id);
+    if (physicalForPackage.length > 0) {
+      // If admin has inputted physical accounts for this package, stock strictly equals AVAILABLE physical accounts
+      const availableCount = physicalForPackage.filter(a => a.status === 'AVAILABLE').length;
+      p.stock = availableCount;
+    }
   });
 
   writeJsonFile(PRODUCTS_FILE, products);
@@ -272,10 +277,15 @@ function generateAccountCredentials(productName, platform, customerWhatsapp) {
   };
 }
 
-// Assign real stored CarX Street account to paid order
+// Assign real stored CarX Street account to paid order & decrement stock automatically
 function assignAccountToOrder(productId, invoice, customerWhatsapp, platform, productName) {
   const accounts = readJsonFile(ACCOUNT_STOCK_FILE, []);
+  const products = readJsonFile(PRODUCTS_FILE, defaultProducts);
+  const pIndex = products.findIndex(p => p.id === productId);
+
   const availableIndex = accounts.findIndex(a => a.packageId === productId && a.status === 'AVAILABLE');
+
+  let delivered = null;
 
   if (availableIndex !== -1) {
     const acc = accounts[availableIndex];
@@ -285,21 +295,28 @@ function assignAccountToOrder(productId, invoice, customerWhatsapp, platform, pr
     acc.soldAt = new Date().toISOString();
     writeJsonFile(ACCOUNT_STOCK_FILE, accounts);
 
-    // Sync product stock
+    // Sync product stock to remaining available physical accounts
     syncProductStock();
 
-    return {
+    delivered = {
       username: acc.email,
       password: acc.password,
       notes: acc.notes || "tinggal login di carx street ya bosku😇",
       instructions: `1. Buka game CarX Street di HP kamu.\n2. Masukkan Email dan Password di atas.\n3. Catatan Admin: ${acc.notes || 'tinggal login di carx street ya bosku😇'}`
     };
+  } else {
+    // If physical stock was not inputted, decrement manual numeric stock by 1
+    if (pIndex !== -1) {
+      products[pIndex].stock = Math.max(0, (products[pIndex].stock || 0) - 1);
+      writeJsonFile(PRODUCTS_FILE, products);
+    }
+
+    const fallback = generateAccountCredentials(productName || 'CarX Street', platform || 'Universal', customerWhatsapp);
+    fallback.notes = "tinggal login di carx street ya bosku😇";
+    delivered = fallback;
   }
 
-  // Fallback if stock was empty
-  const fallback = generateAccountCredentials(productName || 'CarX Street', platform || 'Universal', customerWhatsapp);
-  fallback.notes = "tinggal login di carx street ya bosku😇";
-  return fallback;
+  return delivered;
 }
 
 // Server Request Handler
