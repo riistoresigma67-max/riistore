@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RIISTORE - Tempat Beli Akun CarX Street Terpercaya & Otomatis</title>
+  <meta name="description" content="Toko Akun CarX Street #1 di Indonesia. Beli Akun Sultan, Starter Pack, atau Inject Saldo dengan Pembayaran Otomatis QRIS Dinamis, Bank Virtual Account, & E-Wallet.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Announcement -->
+  <div class="top-announcement">
+    🏎️ RIISTORE CARX STREET • PROMO DISKON S/D 45% • PROSES INSTAN 1-3 MENIT 24 JAM NONSTOP!
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a href="#" class="logo-area">
+        <div class="logo-icon">RII</div>
+        <div class="logo-text">
+          <h1>RIISTORE</h1>
+          <span>CARX STREET STORE</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline btn-sm" onclick="openTrackModal()">
+          🔍 Lacak Pesanan
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="openEduModal()">
+          💡 Info Otomatis
+        </button>
+        <div id="navbarAuthArea" class="user-auth-area">
+          <button class="btn btn-primary btn-sm" onclick="openAuthModal('login')">
+            🔑 Masuk / Daftar
+          </button>
+        </div>
+        <a id="btnNavWa" href="https://wa.me/6281234567890?text=Halo%20Admin%20RIISTORE,%20saya%20mau%20tanya%20akun%20CarX%20Street" target="_blank" class="btn btn-outline btn-sm" style="color: #25d366; border-color: #25d366;">
+          💬 WhatsApp
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-banner">
+        <div class="hero-content">
+          <div class="badge-hero">
+            <span class="pulse-dot"></span>
+            PUSAT AKUN CARX STREET #1 TERPERCAYA
+          </div>
+          <h2>DAPATKAN AKUN <span class="highlight">CARX STREET</span> IMPIANMU SEKARANG</h2>
+          <p>
+            Tinggalkan capeknya grinding berbulan-bulan. Miliki akun CarX Street Sultan dengan Uang 999 Juta, Full Mobil Hypercar & Drift Tune. Pembayaran otomatis 24 Jam via <strong>QRIS Dinamis, Bank VA, & E-Wallet</strong> — data akun langsung keluar otomatis setelah bayar!
+          </p>
+          <div class="hero-badges-row">
+            <div class="feature-pill"><span>⚡</span> Proses Otomatis 1-3 Menit</div>
+            <div class="feature-pill"><span>🛡️</span> Garansi Anti Hackback</div>
+            <div class="feature-pill"><span>📱</span> Support Semua HP (Universal)</div>
+            <div class="feature-pill"><span>💳</span> QRIS Semua Bank & E-Wallet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Order Ticker -->
+      <div class="live-ticker">
+        <div class="ticker-content">
+          <span class="ticker-badge">LIVE TRANSAKSI</span>
+          <span id="tickerText">Pesanan #RII-9821 baru saja dibeli: Akun CarX Sultan Max (Lunas via QRIS)</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--accent-green); font-weight: 700;">● Server Online</div>
+      </div>
+
+      <!-- Callout: Penjelasan Sistem Otomatis -->
+      <div class="auto-pay-banner">
+        <div class="auto-pay-left">
+          <div class="auto-pay-icon">🤖</div>
+          <div class="auto-pay-text">
+            <h4>Bagaimana Sistem Otomatis RIISTORE Bekerja?</h4>
+            <p>Tidak perlu kirim bukti transfer ke admin! Begitu kamu scan <strong>QRIS Dinamis</strong> atau bayar via <strong>Virtual Account Bank</strong>, sistem kami langsung mendeteksi dalam hitungan detik dan menampilkan username & password akun di layarmu.</p>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openEduModal()" style="white-space: nowrap;">
+          Pelajari Caranya ➔
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Catalog Section -->
+  <main class="container">
+    <div class="catalog-header">
+      <h3>PILIHAN PAKET AKUN CARX STREET</h3>
+      <p>Pilih paket akun sesuai gaya bermain kamu. Stok selalu di-update secara real-time.</p>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="catalog-filters">
+      <div class="filter-tabs">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">Semua Paket</button>
+        <button class="tab-btn" onclick="filterCategory('paket-a', this)">Paket A (7K)</button>
+        <button class="tab-btn" onclick="filterCategory('paket-b', this)">Paket B (10K)</button>
+        <button class="tab-btn" onclick="filterCategory('paket-c', this)">Paket C (15K)</button>
+        <button class="tab-btn" onclick="filterCategory('paket-d', this)">Paket D (20K)</button>
+        <button class="tab-btn" onclick="filterCategory('paket-e', this)">Paket E (50K - 36 Mobil)</button>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari paket akun..." oninput="handleSearch()">
+      </div>
+    </div>
+
+    <!-- Product Cards Grid -->
+    <div class="products-grid" id="productsGrid">
+      <!-- Generated via JS -->
+      <div style="text-align: center; grid-column: 1/-1; padding: 3rem; color: var(--text-dim);">
+        Memuat katalog akun CarX Street RIISTORE...
+      </div>
+    </div>
+
+    <!-- Why Choose Us -->
+    <section class="section-features">
+      <div class="catalog-header" style="text-align: center;">
+        <h3>MENGAPA BELANJA DI RIISTORE?</h3>
+        <p>Standar keamanan dan kepuasan tertinggi untuk pemain CarX Street di Indonesia</p>
+      </div>
+
+      <div class="feature-cards-grid">
+        <div class="feature-box">
+          <div class="feature-box-icon">⚡</div>
+          <h4>Deteksi Otomatis 24/7</h4>
+          <p>Menggunakan teknologi Payment Gateway QRIS Dinamis & Virtual Account. Bayar kapan saja (tengah malam sekalipun), akun otomatis terkirim tanpa tunggu admin bangun.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon">🛡️</div>
+          <h4>Garansi Replace & Aman</h4>
+          <p>Semua akun dibuat dengan metode bersih dan aman dari ban sistem. Dilengkapi garansi ganti baru hingga 60 hari jika terjadi kendala login.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon">🏎️</div>
+          <h4>Spesifikasi Real Sesuai Foto</h4>
+          <p>Uang Silver ratusan juta, Gold Coins berlimpah, mobil full engine swap & pro drift tuning sudah teruji siap balapan multiplayer.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon">💬</div>
+          <h4>Bantuan CS Ramah</h4>
+          <p>Bingung cara login Google Play atau Apple ID? Tim CS kami siap memandu langkah demi langkah lewat WhatsApp hingga akun berhasil masuk di HP kamu.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="logo-area" style="margin-bottom: 12px;">
+            <div class="logo-icon">RII</div>
+            <div class="logo-text">
+              <h1>RIISTORE</h1>
+              <span>CARX STREET STORE</span>
+            </div>
+          </div>
+          <p style="font-size: 0.88rem; max-width: 380px;">
+            RIISTORE adalah platform penyedia akun CarX Street resmi, aman, dan instan di Indonesia. Melayani ribuan racer sejak 2023 dengan sistem pembayaran otomatis.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h5>Metode Pembayaran</h5>
+          <ul class="footer-links" style="font-size: 0.85rem;">
+            <li>✓ QRIS Dinamis (Semua Bank & E-Wallet)</li>
+            <li>✓ BCA, Mandiri, BRI, BNI Virtual Account</li>
+            <li>✓ DANA, GoPay, OVO, ShopeePay</li>
+            <li>✓ Terverifikasi Otomatis Real-time</li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Bantuan & Admin</h5>
+          <ul class="footer-links">
+            <li><a href="javascript:void(0)" onclick="openTrackModal()">Lacak Pesanan</a></li>
+            <li><a href="javascript:void(0)" onclick="openEduModal()">Cara Pembayaran Otomatis</a></li>
+            <li><a href="https://wa.me/6281234567890" target="_blank">WhatsApp Dukungan Pelanggan</a></li>
+            <li><a href="javascript:void(0)" onclick="openAdminModal()">Pengaturan Admin</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 RIISTORE. All rights reserved. CarX Street is a trademark of CarX Technologies.</div>
+        <div>Sistem Pembayaran Didukung QRIS Dinamis & Bank VA</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp -->
+  <a id="floatingWaBtn" href="https://wa.me/6281234567890?text=Halo%20Admin%20RIISTORE,%20mau%20tanya%20akun%20CarX%20Street" target="_blank" class="floating-whatsapp" title="Hubungi CS WhatsApp">
+    💬
+  </a>
+
+  <!-- =========================================================
+       MODAL 1: CHECKOUT PEMBELIAN AKUN
+       ========================================================= -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🛒 Form Pembelian Akun</h3>
+        <button class="close-btn" onclick="closeModal('checkoutModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Selected Product Overview -->
+        <div id="checkoutProductPreview" style="background: rgba(0, 240, 255, 0.05); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; display: flex; gap: 12px; margin-bottom: 1.25rem;">
+          <!-- Injected via JS -->
+        </div>
+
+        <form id="orderForm" onsubmit="submitOrder(event)">
+          <!-- WhatsApp Input -->
+          <div class="form-group">
+            <label class="form-label" for="custWhatsapp">Nomor WhatsApp Kamu (Wajib)</label>
+            <input type="tel" id="custWhatsapp" class="form-input" placeholder="Contoh: 081234567890" required>
+            <div class="form-help">PENTING: Bukti invoice dan akun cadangan juga akan dikirimkan ke nomor ini.</div>
+          </div>
+
+          <!-- Email Input (Optional) -->
+          <div class="form-group">
+            <label class="form-label" for="custEmail">Alamat Email (Opsional)</label>
+            <input type="email" id="custEmail" class="form-input" placeholder="nama@gmail.com">
+          </div>
+
+          <!-- Payment Methods -->
+          <div class="form-group">
+            <label class="form-label">Pilih Metode Pembayaran (Semua Otomatis)</label>
+            <div class="payment-methods-grid">
+
+              <!-- QRIS Dinamis (Recommended) -->
+              <div class="payment-option selected" onclick="selectPaymentMethod('QRIS', this)">
+                <div class="pay-left">
+                  <div class="pay-icon-box qris-icon">QRIS</div>
+                  <div>
+                    <div class="pay-title">QRIS Dinamis (Rekomendasi)</div>
+                    <div class="pay-subtitle">DANA, GoPay, OVO, ShopeePay, BCA, BRI, Mandiri</div>
+                  </div>
+                </div>
+                <span class="auto-badge">⚡ Instan</span>
+              </div>
+
+              <!-- BCA Virtual Account -->
+              <div class="payment-option" onclick="selectPaymentMethod('VA_BCA', this)">
+                <div class="pay-left">
+                  <div class="pay-icon-box" style="color: #00569c; font-weight: 900;">BCA</div>
+                  <div>
+                    <div class="pay-title">BCA Virtual Account</div>
+                    <div class="pay-subtitle">Verifikasi otomatis via BCA Mobile / myBCA / KlikBCA</div>
+                  </div>
+                </div>
+                <span class="auto-badge">⚡ Otomatis</span>
+              </div>
+
+              <!-- BRI Virtual Account -->
+              <div class="payment-option" onclick="selectPaymentMethod('VA_BRI', this)">
+                <div class="pay-left">
+                  <div class="pay-icon-box" style="color: #00529c; font-weight: 900;">BRI</div>
+                  <div>
+                    <div class="pay-title">BRI Virtual Account (BRIVA)</div>
+                    <div class="pay-subtitle">Verifikasi otomatis via BRImo / ATM BRI</div>
+                  </div>
+                </div>
+                <span class="auto-badge">⚡ Otomatis</span>
+              </div>
+
+              <!-- Mandiri Virtual Account -->
+              <div class="payment-option" onclick="selectPaymentMethod('VA_MANDIRI', this)">
+                <div class="pay-left">
+                  <div class="pay-icon-box" style="color: #f59e0b; font-weight: 900;">MDR</div>
+                  <div>
+                    <div class="pay-title">Mandiri Virtual Account</div>
+                    <div class="pay-subtitle">Verifikasi otomatis via Livin' by Mandiri</div>
+                  </div>
+                </div>
+                <span class="auto-badge">⚡ Otomatis</span>
+              </div>
+
+              <!-- E-Wallet Direct -->
+              <div class="payment-option" onclick="selectPaymentMethod('EWALLET_DANA', this)">
+                <div class="pay-left">
+                  <div class="pay-icon-box" style="color: #118eea; font-weight: 900;">DANA</div>
+                  <div>
+                    <div class="pay-title">E-Wallet DANA Instan</div>
+                    <div class="pay-subtitle">Scan QRIS / Deeplink DANA</div>
+                  </div>
+                </div>
+                <span class="auto-badge">⚡ Otomatis</span>
+              </div>
+
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmitOrder" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+            Bayar Sekarang ➔
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 2: INVOICE PEMBAYARAN & DELIVERY AKUN (AUTO DETECT)
+       ========================================================= -->
+  <div class="modal-overlay" id="invoiceModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="invoiceHeaderTitle">💳 Invoice Pembayaran</h3>
+        <button class="close-btn" onclick="closeModal('invoiceModal')">&times;</button>
+      </div>
+      <div class="modal-body invoice-wrapper">
+        
+        <!-- STATE 1: UNPAID (WAITING FOR PAYMENT) -->
+        <div id="unpaidSection">
+          <div class="countdown-box">
+            <span>⏱️ Batas Waktu Bayar:</span>
+            <span id="countdownTimer" style="font-family: monospace; font-size: 1.05rem;">14:59</span>
+          </div>
+
+          <div class="invoice-header-card">
+            <div class="invoice-row">
+              <span style="color: var(--text-dim);">No. Invoice</span>
+              <span id="invNumber" style="font-weight: 800; font-family: monospace; color: #fff;">-</span>
+            </div>
+            <div class="invoice-row">
+              <span style="color: var(--text-dim);">Produk</span>
+              <span id="invProductName" style="font-weight: 700; color: #fff;">-</span>
+            </div>
+            <div class="invoice-row">
+              <span style="color: var(--text-dim);">Metode Bayar</span>
+              <span id="invPaymentMethod" style="font-weight: 700; color: var(--primary-neon);">-</span>
+            </div>
+            <div class="invoice-row total">
+              <span>Total Tagihan</span>
+              <span id="invTotalAmount">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- DYNAMIC CONTENT (QRIS or VIRTUAL ACCOUNT) -->
+          <div id="paymentInstructions">
+            <!-- Dynamically populated: QRIS or Bank VA box -->
+          </div>
+
+          <!-- Radar Polling Auto Detect Indicator -->
+          <div class="polling-status-indicator">
+            <div class="radar-spinner"></div>
+            <span>Sistem sedang mendeteksi pembayaran kamu secara otomatis...</span>
+          </div>
+
+          <!-- SIMULASI PEMBAYARAN BERHASIL (DEMO FOR USER TO TEST INSTANT DETECTION) -->
+          <div style="background: rgba(255, 94, 0, 0.08); border: 1px dashed var(--accent-orange); border-radius: var(--radius-md); padding: 12px; margin-top: 1rem; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--accent-orange); font-weight: 800; margin-bottom: 6px;">
+              ⚡ COBA DEMO DETEKSI OTOMATIS:
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Ingin tahu bagaimana sistem mendeteksi pembayaran begitu buyer selesai bayar? Klik tombol di bawah:
+            </p>
+            <button class="btn btn-accent btn-sm" onclick="simulatePaymentSuccess()">
+              Simulasikan Pembayaran Berhasil (Tes Auto-Detect)
+            </button>
+          </div>
+        </div>
+
+        <!-- STATE 2: PAID (CREDENTIALS DELIVERED INSTANTLY) -->
+        <div id="paidSection" style="display: none;">
+          <div class="success-badge">
+            ✓ PEMBAYARAN BERHASIL TERVERIFIKASI OTOMATIS!
+          </div>
+
+          <h4 style="font-family: var(--font-heading); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">
+            🎉 Selamat! Akun CarX Street Siap Digunakan
+          </h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Pembayaran telah kami terima. Berikut adalah rincian data login akun kamu:
+          </p>
+
+          <div class="success-credentials-box" id="credentialsBox">
+            <!-- Account Username/Email -->
+            <div class="cred-field">
+              <div>
+                <div class="cred-label">Email / ID Login</div>
+                <div class="cred-value" id="credUsername">-</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="copyText('credUsername')">Salin</button>
+            </div>
+
+            <!-- Account Password -->
+            <div class="cred-field">
+              <div>
+                <div class="cred-label">Password Akun</div>
+                <div class="cred-value" id="credPassword">-</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="copyText('credPassword')">Salin</button>
+            </div>
+
+            <!-- CATATAN KHUSUS DARI ADMIN -->
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px dashed #f59e0b; border-radius: var(--radius-md); padding: 12px; margin-top: 10px; text-align: center;">
+              <div style="font-size: 0.75rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; margin-bottom: 3px;">📌 CATATAN DARI ADMIN:</div>
+              <div id="credAdminNote" style="font-size: 1.05rem; font-weight: 800; color: #fff;">tinggal login di carx street ya bosku😇</div>
+            </div>
+
+            <!-- Panduan Login -->
+            <div style="margin-top: 12px; background: #090e1a; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px;">
+              <div style="font-size: 0.8rem; font-weight: 800; color: var(--primary-neon); margin-bottom: 4px;">📖 Panduan Login Game:</div>
+              <div id="credInstructions" style="font-size: 0.82rem; color: #cbd5e1; white-space: pre-line; line-height: 1.5;">-</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('invoiceModal')">
+              Tutup
+            </button>
+            <a id="btnClaimWa" href="#" target="_blank" class="btn btn-primary" style="flex: 1;">
+              💬 Hubungi CS Jika Butuh Bantuan
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 3: LACAK PESANAN (TRACK ORDER)
+       ========================================================= -->
+  <div class="modal-overlay" id="trackModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔍 Lacak & Cek Pesanan Akun</h3>
+        <button class="close-btn" onclick="closeModal('trackModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Masukkan Nomor WhatsApp atau Nomor Invoice yang kamu gunakan saat pembelian untuk mengecek status & detail akun.
+        </p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 1.25rem;">
+          <input type="text" id="trackInput" class="form-input" placeholder="No. WA (0812...) atau Invoice (RII-...)">
+          <button class="btn btn-primary" onclick="searchTrackOrder()">Cari</button>
+        </div>
+
+        <div id="trackResultContainer">
+          <!-- Track results -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 4: EDUKASI SISTEM PEMBAYARAN OTOMATIS
+       ========================================================= -->
+  <div class="modal-overlay" id="eduModal">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3>💡 Tanya: Apakah Bank & E-Wallet Bisa Otomatis?</h3>
+        <button class="close-btn" onclick="closeModal('eduModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-green); border-radius: var(--radius-md); padding: 12px; margin-bottom: 1rem;">
+          <strong style="color: var(--accent-green); font-size: 1rem;">JAWABAN: BISA BANGET OTOMATIS 100%!</strong>
+          <p style="margin-top: 4px; font-size: 0.85rem; color: #fff;">
+            Asalkan website menggunakan <strong>Payment Gateway Resmi</strong> (seperti Tripay, Midtrans, Pakasir, atau Duitku).
+          </p>
+        </div>
+
+        <h4 style="color: var(--primary-neon); margin: 12px 0 6px;">1. Bagaimana Cara Kerjanya?</h4>
+        <ul style="padding-left: 20px; margin-bottom: 12px;">
+          <li><strong>QRIS Dinamis (Paling Direkomendasikan):</strong> Setiap transaksi memiliki QR code unik dengan nominal pas. Pembeli bisa scan dari DANA, GoPay, OVO, ShopeePay, atau m-Banking apa saja. Begitu bayar, sistem gateway mengirim sinyal <em>Webhook Callback</em> ke website RIISTORE dalam 1-2 detik -> Status langsung Lunas otomatis!</li>
+          <li><strong>Bank Virtual Account (VA):</strong> Pembeli diberikan nomor VA unik (contoh BCA VA, BRI BRIVA). Saat buyer transfer ke nomor VA tersebut, bank langsung mengenali invoice dan otomatis lunas tanpa perlu unggah struk.</li>
+          <li><strong>E-Wallet Direct:</strong> Buyer langsung diarahkan membuka aplikasi DANA/GoPay dengan nominal terkunci.</li>
+        </ul>
+
+        <h4 style="color: var(--accent-orange); margin: 12px 0 6px;">2. Kapan Bank/E-Wallet TIDAK BISA Otomatis?</h4>
+        <p style="margin-bottom: 12px;">
+          Jika Anda menggunakan <strong>Nomor Rekening Bank Biasa (Pribadi)</strong> atau <strong>Nomor HP DANA Pribadi</strong> tanpa payment gateway. Bank tidak memberikan akses API gratis untuk rekening tabungan perorangan, sehingga pembeli harus kirim screenshot struk ke WA admin atau menggunakan bot mutasi scraper (yang rawan kena suspend).
+        </p>
+
+        <h4 style="color: #fff; margin: 12px 0 6px;">3. Rekomendasi Gateway untuk RIISTORE:</h4>
+        <p>
+          Untuk toko game digital seperti RIISTORE, rekomendasi terbaik adalah menggunakan <strong>Tripay</strong> atau <strong>Pakasir</strong> karena syarat pendaftarannya sangat mudah untuk individu/UMKM, dan biaya QRIS hanya ~0.7%!
+        </p>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <button class="btn btn-primary" onclick="closeModal('eduModal')">Saya Mengerti ➔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 5: AUTH MODAL (LOGIN & REGISTER BUYER)
+       ========================================================= -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 id="authModalTitle">🔐 Masuk Akun RIISTORE</h3>
+        <button class="close-btn" onclick="closeModal('authModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Auth Tabs: Login vs Register -->
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">
+            Masuk (Login)
+          </button>
+          <button type="button" class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">
+            Daftar Akun Baru
+          </button>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email atau Username</label>
+            <input type="text" id="loginEmail" class="form-input" placeholder="Masukkan email atau username" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" id="btnLoginSubmit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+            Masuk Sekarang ➔
+          </button>
+          <div class="admin-login-hint">
+            👑 <strong>Akses Khusus Admin:</strong><br>
+            Email: <code>admin</code> • Password: <code>admin123</code>
+          </div>
+        </form>
+
+        <!-- FORM REGISTER (BUYER) -->
+        <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="regUsername">Username Kamu</label>
+            <input type="text" id="regUsername" class="form-input" placeholder="Contoh: racer_street99" required minlength="3">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Alamat Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="nama@gmail.com" required>
+            <div class="form-help">Digunakan untuk menerima data akun CarX Street & bukti bayar</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regWhatsapp">Nomor WhatsApp Aktif</label>
+            <input type="tel" id="regWhatsapp" class="form-input" placeholder="Contoh: 081234567890" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Password</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="Minimal 5 karakter" required minlength="5">
+          </div>
+          <button type="submit" id="btnRegisterSubmit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+            Daftar Akun Baru ➔
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 6: DASHBOARD ADMIN KHUSUS (EMAIL: admin, PASS: admin123)
+       ========================================================= -->
+  <div class="modal-overlay" id="adminDashboardModal">
+    <div class="modal-card admin-modal-card">
+      <div class="modal-header">
+        <h3 style="color: #fbbf24;">
+          👑 Dashboard Admin RIISTORE
+        </h3>
+        <button class="close-btn" onclick="closeModal('adminDashboardModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Metrics Stats -->
+        <div class="admin-stats-grid">
+          <div class="stat-card revenue">
+            <div class="stat-title">💰 Total Omset (Lunas)</div>
+            <div class="stat-number" id="dashTotalRevenue">Rp 0</div>
+          </div>
+          <div class="stat-card orders">
+            <div class="stat-title">📦 Total Pesanan Masuk</div>
+            <div class="stat-number" id="dashTotalOrders">0</div>
+          </div>
+          <div class="stat-card stock">
+            <div class="stat-title">🏎️ Total Sisa Stok Akun</div>
+            <div class="stat-number" id="dashTotalStock">0 Unit</div>
+          </div>
+          <div class="stat-card buyers">
+            <div class="stat-title">👥 Pembeli Terdaftar</div>
+            <div class="stat-number" id="dashTotalBuyers">0 User</div>
+          </div>
+        </div>
+
+        <!-- Admin Nav Tabs -->
+        <div class="admin-nav-tabs">
+          <button class="admin-nav-btn active" onclick="switchAdminTab('accounts', this)">
+            🔑 Input Stok Akun (Email & Password)
+          </button>
+          <button class="admin-nav-btn" onclick="switchAdminTab('stock', this)">
+            🏷️ Atur Harga Paket
+          </button>
+          <button class="admin-nav-btn" onclick="switchAdminTab('orders', this)">
+            📊 Pantau Semua Transaksi
+          </button>
+          <button class="admin-nav-btn" onclick="switchAdminTab('buyers', this)">
+            👥 Daftar Pembeli Terdaftar
+          </button>
+          <button class="admin-nav-btn" onclick="switchAdminTab('settings', this)">
+            ⚙️ Pengaturan Toko
+          </button>
+        </div>
+
+        <!-- TAB 1: INPUT EMAIL & PASSWORD AKUN CARX STREET (STOK FISIK) -->
+        <div id="adminTabAccounts" class="admin-tab-content">
+          <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <h4 style="font-family: var(--font-heading); color: var(--primary-neon); margin-bottom: 10px; font-size: 1.15rem;">
+              ➕ Masukkan Akun CarX Street Baru ke Stok
+            </h4>
+            <form id="addAccountForm" onsubmit="handleAddAccountStock(event)">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                <div>
+                  <label class="form-label">Pilih Paket Akun</label>
+                  <select id="accInputPackage" class="form-input" required>
+                    <option value="paket-a">PAKET A - Rp 7.000 (Silver 3M, Gold 3K)</option>
+                    <option value="paket-b">PAKET B - Rp 10.000 (Silver 5M, Gold 5K)</option>
+                    <option value="paket-c">PAKET C - Rp 15.000 (Silver 8M, Gold 8K)</option>
+                    <option value="paket-d">PAKET D - Rp 20.000 (Silver 12M, Gold 12K)</option>
+                    <option value="paket-e">PAKET E - Rp 50.000 (Sultan 36 Mobil + Aksesoris)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Email / ID Akun CarX Street</label>
+                  <input type="text" id="accInputEmail" class="form-input" placeholder="contoh: carx.sultan99@gmail.com" required>
+                </div>
+                <div>
+                  <label class="form-label">Password Akun CarX Street</label>
+                  <input type="text" id="accInputPassword" class="form-input" placeholder="contoh: StreetPass#2026" required>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label">Catatan Khusus untuk Buyer</label>
+                <input type="text" id="accInputNotes" class="form-input" value="tinggal login di carx street ya bosku😇" required>
+                <div class="form-help">Catatan ini akan otomatis muncul di layar buyer saat pembayaran berhasil.</div>
+              </div>
+
+              <button type="submit" id="btnAddAccSubmit" class="btn btn-primary">
+                ➕ Simpan & Tambahkan Akun ke Stok
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabel Stok Akun Yang Tersedia & Terjual -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="font-family: var(--font-heading); color: #fff; margin: 0; font-size: 1.1rem;">
+              📦 Daftar Akun CarX Street di Database
+            </h4>
+            <button class="btn btn-outline btn-sm" onclick="loadAccountStockTable()">🔄 Refresh Stok Akun</button>
+          </div>
+
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Paket</th>
+                  <th>Email / Username Akun</th>
+                  <th>Password Akun</th>
+                  <th>Catatan untuk Buyer</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminAccountsTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: KELOLA HARGA PAKET (PAKET A - E) -->
+        <div id="adminTabStock" class="admin-tab-content" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+              Ubah jumlah sisa stok atau sesuaikan harga jual Paket A, B, C, D, E secara langsung:
+            </p>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminDashboardData()">🔄 Refresh</button>
+          </div>
+
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Paket</th>
+                  <th>Spesifikasi Utama</th>
+                  <th>Harga Saat Ini</th>
+                  <th>Sisa Stok (Unit)</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminStockTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: PANTAU SEMUA TRANSAKSI -->
+        <div id="adminTabOrders" class="admin-tab-content" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+              Pantau status pembayaran buyer secara real-time:
+            </p>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminDashboardData()">🔄 Refresh Transaksi</button>
+          </div>
+
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>No. Invoice</th>
+                  <th>Pembeli & WA</th>
+                  <th>Paket Dibeli</th>
+                  <th>Total Bayar</th>
+                  <th>Metode</th>
+                  <th>Status</th>
+                  <th>Aksi Admin</th>
+                </tr>
+              </thead>
+              <tbody id="adminOrdersTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: DAFTAR PEMBELI TERDAFTAR -->
+        <div id="adminTabBuyers" class="admin-tab-content" style="display: none;">
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+            Daftar buyer yang telah registrasi di website RIISTORE:
+          </p>
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Nomor WhatsApp</th>
+                  <th>Tanggal Daftar</th>
+                  <th>Total Belanja</th>
+                </tr>
+              </thead>
+              <tbody id="adminBuyersTableBody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 4: PENGATURAN TOKO & WHATSAPP -->
+        <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
+          <form onsubmit="saveAdminStoreSettings(event)" style="max-width: 500px;">
+            <div class="form-group">
+              <label class="form-label">Nama Website / Toko</label>
+              <input type="text" id="settingStoreName" class="form-input" value="RIISTORE">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nomor WhatsApp Admin (Menerima Pesan & Komplain)</label>
+              <input type="text" id="settingAdminWa" class="form-input" value="6281234567890" placeholder="6281234567890">
+              <div class="form-help">Format internasional: 6281234567890</div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              💾 Simpan Pengaturan Toko
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL 7: RIWAYAT AKUN SAYA (BUYER DASHBOARD)
+       ========================================================= -->
+  <div class="modal-overlay" id="buyerHistoryModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📦 Riwayat Akun CarX Street Saya</h3>
+        <button class="close-btn" onclick="closeModal('buyerHistoryModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Berikut adalah riwayat akun CarX Street yang telah berhasil kamu beli di RIISTORE:
+        </p>
+
+        <div id="buyerOrdersList">
+          <!-- Loaded via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="qrcodelib.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

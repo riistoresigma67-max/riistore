@@ -1,0 +1,18 @@
+{
+  "name": "riistore-carx-street",
+  "version": "1.0.0",
+  "description": "RIISTORE - Website Jual Beli Akun CarX Street Terpercaya dengan Pembayaran Otomatis QRIS Dinamis, Bank VA, & E-Wallet",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "carx-street",
+    "riistore",
+    "jual-beli-akun",
+    "qris-dinamis",
+    "payment-gateway"
+  ],
+  "author": "RIISTORE",
+  "license": "ISC"
+}
