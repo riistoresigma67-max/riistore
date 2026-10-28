@@ -1748,17 +1748,14 @@ body {
         </div>
 
         <form id="orderForm" onsubmit="submitOrder(event)">
-          <!-- WhatsApp Input -->
-          <div class="form-group">
-            <label class="form-label" for="custWhatsapp">Nomor WhatsApp Kamu (Wajib)</label>
-            <input type="tel" id="custWhatsapp" class="form-input" placeholder="Contoh: 081234567890" required>
-            <div class="form-help">PENTING: Bukti invoice dan akun cadangan juga akan dikirimkan ke nomor ini.</div>
-          </div>
-
-          <!-- Email Input (Optional) -->
-          <div class="form-group">
-            <label class="form-label" for="custEmail">Alamat Email (Opsional)</label>
-            <input type="email" id="custEmail" class="form-input" placeholder="nama@gmail.com">
+          <!-- Instant Checkout Info -->
+          <div style="background: rgba(6, 182, 212, 0.08); border: 1px dashed var(--primary-neon); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 1.25rem;">
+            <div style="font-weight: 800; color: #fff; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+              <span>⚡</span> Pembelian Instan (Cukup Simpan Invoice)
+            </div>
+            <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 4px; line-height: 1.4;">
+              Tidak perlu isi nomor WA atau Email. Kamu akan langsung mendapatkan <strong>No. Invoice & Kode QRIS</strong>. Setelah scan transfer, data akun CarX Street langsung muncul di layar!
+            </div>
           </div>
 
           <!-- Payment Methods: QRIS Exclusive -->
@@ -1806,9 +1803,12 @@ body {
           </div>
 
           <div class="invoice-header-card">
-            <div class="invoice-row">
+            <div class="invoice-row" style="align-items: center;">
               <span style="color: var(--text-dim);">No. Invoice</span>
-              <span id="invNumber" style="font-weight: 800; font-family: monospace; color: #fff;">-</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="invNumber" style="font-weight: 800; font-family: monospace; color: var(--primary-neon); font-size: 1.05rem;">-</span>
+                <button class="btn btn-outline btn-sm" onclick="copyText('invNumber')" style="padding: 2px 8px; font-size: 0.72rem;">Salin</button>
+              </div>
             </div>
             <div class="invoice-row">
               <span style="color: var(--text-dim);">Produk</span>
@@ -1916,12 +1916,12 @@ body {
       </div>
       <div class="modal-body">
         <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Masukkan Nomor WhatsApp atau Nomor Invoice yang kamu gunakan saat pembelian untuk mengecek status & detail akun.
+          Masukkan Nomor Invoice pesanan kamu untuk mengecek status pembayaran & data login akun CarX Street:
         </p>
 
         <div style="display: flex; gap: 8px; margin-bottom: 1.25rem;">
-          <input type="text" id="trackInput" class="form-input" placeholder="No. WA (0812...) atau Invoice (RII-...)">
-          <button class="btn btn-primary" onclick="searchTrackOrder()">Cari</button>
+          <input type="text" id="trackInput" class="form-input" placeholder="Contoh: RII-20261029-XXXX">
+          <button class="btn btn-primary" onclick="searchTrackOrder()">Cari Invoice</button>
         </div>
 
         <div id="trackResultContainer">
@@ -2017,11 +2017,7 @@ body {
           <div class="form-group">
             <label class="form-label" for="regEmail">Alamat Email</label>
             <input type="email" id="regEmail" class="form-input" placeholder="nama@gmail.com" required>
-            <div class="form-help">Digunakan untuk menerima data akun CarX Street & bukti bayar</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="regWhatsapp">Nomor WhatsApp Aktif</label>
-            <input type="tel" id="regWhatsapp" class="form-input" placeholder="Contoh: 081234567890" required>
+            <div class="form-help">Digunakan untuk login akun RIISTORE</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="regPassword">Password</label>
@@ -2302,10 +2298,10 @@ body {
         <!-- Quick search & claim bar -->
         <div style="background: rgba(15, 23, 42, 0.6); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 1.25rem;">
           <div style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px;">
-            🔍 Ada pesanan yang belum muncul? Masukkan No. Invoice / Email / No. WA:
+            🔍 Ada pesanan yang belum muncul? Masukkan No. Invoice kamu:
           </div>
           <div style="display: flex; gap: 6px;">
-            <input type="text" id="buyerOrderSearchInput" placeholder="Contoh: RII-20261028-7196 atau email" style="flex: 1; padding: 7px 10px; font-size: 0.82rem; background: #090e1a; border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+            <input type="text" id="buyerOrderSearchInput" placeholder="Contoh: RII-20261029-XXXX" style="flex: 1; padding: 7px 10px; font-size: 0.82rem; background: #090e1a; border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
             <button class="btn btn-primary btn-sm" onclick="searchBuyerOrderQuick()" style="padding: 7px 12px; font-size: 0.8rem; white-space: nowrap;">
               Cari & Klaim
             </button>
@@ -2741,12 +2737,6 @@ function openCheckout(productId) {
     </div>
   `;
 
-  // Pre-fill user details if available
-  const waInput = document.getElementById('custWhatsapp');
-  const emailInput = document.getElementById('custEmail');
-  if (waInput && user.whatsapp) waInput.value = user.whatsapp;
-  if (emailInput && user.email && user.email !== 'admin') emailInput.value = user.email;
-
   // Reset payment selection to QRIS
   selectedPaymentMethod = 'QRIS';
   document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
@@ -2772,21 +2762,16 @@ async function submitOrder(e) {
     return;
   }
 
-  const whatsapp = document.getElementById('custWhatsapp').value.trim();
-  const email = document.getElementById('custEmail').value.trim();
-  const platform = 'Universal';
-
-  if (!whatsapp) {
-    showToast('Mohon masukkan nomor WhatsApp yang aktif!');
-    return;
-  }
-
   const user = getCurrentUser();
   if (!user) {
     showToast('Sesi berakhir, silakan login kembali');
     openAuthModal('login');
     return;
   }
+
+  const whatsapp = (user && user.whatsapp && user.whatsapp !== '-') ? user.whatsapp : '-';
+  const email = (user && user.email) ? user.email : '-';
+  const platform = 'Universal';
 
   const submitBtn = document.getElementById('btnSubmitOrder');
   submitBtn.disabled = true;
@@ -3163,7 +3148,7 @@ async function searchTrackOrder() {
   const input = document.getElementById('trackInput').value.trim();
   const container = document.getElementById('trackResultContainer');
   if (!input) {
-    showToast('Masukkan nomor WhatsApp atau invoice');
+    showToast('Masukkan nomor invoice kamu (misal RII-...)');
     return;
   }
 
@@ -3442,12 +3427,11 @@ async function handleRegister(e) {
   e.preventDefault();
   const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regEmail').value.trim();
-  const whatsapp = document.getElementById('regWhatsapp').value.trim();
   const password = document.getElementById('regPassword').value.trim();
   const btn = document.getElementById('btnRegisterSubmit');
 
-  if (!username || !email || !password || !whatsapp) {
-    showToast('Semua kolom registrasi wajib diisi!');
+  if (!username || !email || !password) {
+    showToast('Username, Email, dan Password wajib diisi!');
     return;
   }
 
@@ -3458,7 +3442,7 @@ async function handleRegister(e) {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, whatsapp, password })
+      body: JSON.stringify({ username, email, whatsapp: '-', password })
     });
 
     const data = await res.json();

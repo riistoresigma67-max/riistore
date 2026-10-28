@@ -703,8 +703,8 @@ const requestHandler = async (req, res) => {
       const body = await getRequestBody(req);
       const { productId, customerWhatsapp, customerEmail, platform, paymentMethod, buyerId, buyerUsername } = body;
 
-      if (!productId || !customerWhatsapp || !paymentMethod) {
-        sendJson(res, 400, { success: false, message: 'Data pesanan tidak lengkap' });
+      if (!productId || !paymentMethod) {
+        sendJson(res, 400, { success: false, message: 'Data pesanan tidak lengkap (pilih paket & metode bayar)' });
         return;
       }
 
