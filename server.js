@@ -11,13 +11,23 @@ const url = require('url');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, 'data');
+let DATA_DIR = path.join(__dirname, 'data');
+if (process.env.VERCEL) {
+  DATA_DIR = path.join('/tmp', 'data');
+}
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+// Ensure data directory exists safely
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Read-only filesystem fallback
 }
+
+// In-memory fallback cache
+const memoryCache = {};
 
 // File Paths
 const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
@@ -31,14 +41,121 @@ const defaultConfig = {
   tagline: "Pusat Jual Beli Akun CarX Street Terpercaya & Otomatis #1",
   adminWhatsapp: "6281234567890",
   paymentGateway: {
-    activeProvider: "SIMULASI_PROD",
-    tripayApiKey: "",
-    tripayPrivateKey: "",
-    tripayMerchantCode: "",
-    midtransServerKey: "",
-    pakasirApiKey: ""
+    activeProvider: "LIVE_QRIS",
+    apiKey: "sk_live_d19aa0476d7bbb7bbca4d4f4699e85ce9561f867c7e44cf5",
+    webhookSecret: "b7cbb6cc7582698603eabe480a1d256b010c76a7e433e4b7d864958ab53b6999"
   }
 };
+
+const defaultProducts = [
+  {
+    id: "paket-a",
+    name: "PAKET A - CarX Street",
+    category: "paket-a",
+    badge: "HEMAT 7K",
+    badgeColor: "cyan",
+    platform: "Android & iOS",
+    price: 7000,
+    originalPrice: 15000,
+    discount: "53%",
+    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
+    stock: 5,
+    description: "Paket paling terjangkau untuk langsung balap dengan Level 50 Max dan modal 3 Juta Silver & 3 Ribu Gold.",
+    specs: [
+      "Silver 3.000.000 (3M)",
+      "Gold 3.000 (3K)",
+      "Level Akun 50 (Maksimal)",
+      "Semua Map Sunset City Terbuka",
+      "Garansi Akun Aman 100%"
+    ]
+  },
+  {
+    id: "paket-b",
+    name: "PAKET B - CarX Street",
+    category: "paket-b",
+    badge: "FAVORIT 10K",
+    badgeColor: "blue",
+    platform: "Android & iOS",
+    price: 10000,
+    originalPrice: 20000,
+    discount: "50%",
+    image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
+    stock: 5,
+    description: "Pilihan favorit racer pemula! Level 50 dengan modal 5 Juta Silver dan 5 Ribu Gold untuk beli mobil impian.",
+    specs: [
+      "Silver 5.000.000 (5M)",
+      "Gold 5.000 (5K)",
+      "Level Akun 50 (Maksimal)",
+      "Semua Map Sunset City Terbuka",
+      "Garansi Akun Aman 100%"
+    ]
+  },
+  {
+    id: "paket-c",
+    name: "PAKET C - CarX Street",
+    category: "paket-c",
+    badge: "BEST VALUE 15K",
+    badgeColor: "purple",
+    platform: "Universal",
+    price: 15000,
+    originalPrice: 30000,
+    discount: "50%",
+    image: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=800&q=80",
+    stock: 5,
+    description: "Paket rekomendasi value terbaik! Modal melimpah 8 Juta Silver dan 8 Ribu Gold dengan semua map unlocked.",
+    specs: [
+      "Silver 8.000.000 (8M)",
+      "Gold 8.000 (8K)",
+      "Level Akun 50 (Maksimal)",
+      "Semua Map Sunset City Terbuka",
+      "Garansi Akun Aman 100%"
+    ]
+  },
+  {
+    id: "paket-d",
+    name: "PAKET D - CarX Street",
+    category: "paket-d",
+    badge: "SUPER PRO 20K",
+    badgeColor: "red",
+    platform: "Universal",
+    price: 20000,
+    originalPrice: 40000,
+    discount: "50%",
+    image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
+    stock: 5,
+    description: "Paket Pro dengan modal besar 12 Juta Silver dan 12 Ribu Gold. Bebas modifikasi mesin dan bodykit sepuasnya.",
+    specs: [
+      "Silver 12.000.000 (12M)",
+      "Gold 12.000 (12K)",
+      "Level Akun 50 (Maksimal)",
+      "Semua Map Sunset City Terbuka",
+      "Garansi Akun Aman 100%"
+    ]
+  },
+  {
+    id: "paket-e",
+    name: "PAKET E - Sultan 36 Mobil & Aksesoris",
+    category: "paket-e",
+    badge: "SULTAN 36 MOBIL",
+    badgeColor: "gold",
+    platform: "Universal",
+    price: 50000,
+    originalPrice: 99000,
+    discount: "49%",
+    image: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=800&q=80",
+    stock: 5,
+    description: "PAKET TERTINGGI & PALING LENGKAP! Dapat 36 Mobil siap balap/drift + Aksesoris Terbuka + Uang 12M & Gold 12K.",
+    specs: [
+      "Silver 12.000.000 (12M)",
+      "Gold 12.000 (12K)",
+      "Level Akun 50 (Maksimal)",
+      "Semua Map Sunset City Terbuka",
+      "Termasuk 36 Mobil Siap Balap & Drift",
+      "Semua Bodykit & Aksesoris Unlocked",
+      "Garansi Akun Anti Banned 100%"
+    ]
+  }
+];
 
 const defaultAdminUser = [
   {
@@ -54,23 +171,38 @@ const defaultAdminUser = [
 
 function readJsonFile(filePath, defaultValue) {
   try {
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
-      return defaultValue;
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf8');
+      return JSON.parse(data);
     }
-    const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
   } catch (err) {
-    console.error(`Error reading ${filePath}:`, err.message);
-    return defaultValue;
+    // ignore read error
   }
+
+  if (memoryCache[filePath]) {
+    return memoryCache[filePath];
+  }
+
+  // Fallback defaults
+  if (filePath.includes('products.json')) return defaultProducts;
+  if (filePath.includes('config.json')) return defaultConfig;
+  if (filePath.includes('users.json')) return defaultAdminUser;
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
+  } catch (e) {
+    // Safe memory cache
+  }
+  memoryCache[filePath] = defaultValue;
+  return defaultValue;
 }
 
 function writeJsonFile(filePath, data) {
+  memoryCache[filePath] = data;
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   } catch (err) {
-    console.error(`Error writing ${filePath}:`, err.message);
+    // Ignore read-only write failures safely
   }
 }
 
@@ -864,12 +996,20 @@ const server = http.createServer(async (req, res) => {
     safePath = '/index.html';
   }
 
-  const filePath = path.join(PUBLIC_DIR, safePath);
+  // Look in PUBLIC_DIR first, then root __dirname
+  let filePath = path.join(PUBLIC_DIR, safePath);
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, safePath);
+  }
+
   const ext = path.extname(filePath).toLowerCase();
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
-      const fallbackPath = path.join(PUBLIC_DIR, 'index.html');
+      let fallbackPath = path.join(PUBLIC_DIR, 'index.html');
+      if (!fs.existsSync(fallbackPath)) {
+        fallbackPath = path.join(__dirname, 'index.html');
+      }
       fs.readFile(fallbackPath, (err2, content) => {
         if (err2) {
           res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -889,13 +1029,16 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`🚀 RIISTORE CarX Street Store running at:`);
-  console.log(`👉 http://localhost:${PORT}`);
-  console.log(`👑 Admin Access: Email/User: admin | Password: admin123`);
-  console.log(`=======================================================`);
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🚀 RIISTORE CarX Street Store running at:`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`👑 Admin Access: Email/User: admin | Password: admin123`);
+    console.log(`=======================================================`);
+  });
+}
 
 module.exports = server;
+
 
