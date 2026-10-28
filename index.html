@@ -3498,63 +3498,69 @@ async function loadAccountStockTable() {
   const tbody = document.getElementById('adminAccountsTableBody');
   if (!tbody) return;
 
-  let accounts = getLocalAccounts();
-
   try {
     const res = await fetch('/api/admin/accounts');
     if (res.ok) {
       const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        // Merge server accounts with local accounts
-        const serverIds = new Set(data.data.map(a => a.id || a.email));
-        accounts = [...data.data, ...accounts.filter(a => !serverIds.has(a.id || a.email))];
-        setLocalAccounts(accounts);
+      if (data.success && Array.isArray(data.data)) {
+        renderAccountRows(data.data);
+        setLocalAccounts(data.data);
+        return;
       }
     }
   } catch (err) {
-    // Fallback to local accounts
+    console.warn('Network issue, using cached accounts');
   }
 
-  if (accounts.length === 0) {
+  // Fallback only if server was unreachable
+  renderAccountRows(getLocalAccounts());
+}
+
+function renderAccountRows(accounts) {
+  const tbody = document.getElementById('adminAccountsTableBody');
+  if (!tbody) return;
+
+  if (!accounts || accounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">Belum ada akun di stok. Silakan masukkan Email & Password akun lewat form di atas lalu klik "Simpan & Tambahkan Akun ke Stok"!</td></tr>`;
-  } else {
-    tbody.innerHTML = accounts.map(acc => `
-      <tr>
-        <td>
-          <strong style="color: var(--primary-neon);">${acc.packageName || acc.packageId}</strong>
-        </td>
-        <td>
-          <code style="color: #fff; font-size: 0.85rem;">${acc.email}</code>
-        </td>
-        <td>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <code style="color: #cbd5e1; font-size: 0.85rem;">${acc.password}</code>
-            <button class="btn btn-outline btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="navigator.clipboard.writeText('${acc.password}').then(()=>showToast('Password disalin!'))">Salin</button>
-          </div>
-        </td>
-        <td>
-          <div style="font-size: 0.78rem; color: #fbbf24; font-weight: 700; max-width: 250px;">
-            ${acc.notes || 'tinggal login di carx street ya bosku😇'}
-          </div>
-        </td>
-        <td>
-          <span class="status-pill ${acc.status === 'AVAILABLE' ? 'status-paid' : 'status-unpaid'}">
-            ${acc.status === 'AVAILABLE' ? '⚡ READY (TERSEDIA)' : '✓ TERJUAL'}
-          </span>
-          ${acc.soldToInvoice ? `<div style="font-size: 0.7rem; color: var(--text-dim);">${acc.soldToInvoice}</div>` : ''}
-        </td>
-        <td>
-          ${acc.status === 'AVAILABLE' ? `
-            <button class="btn btn-logout" style="padding: 4px 8px; font-size: 0.75rem;" onclick="handleDeleteAccountStock('${acc.id}')">
-              Hapus
-            </button>
-          ` : `
-            <span style="font-size: 0.75rem; color: var(--text-dim);">Terkirim</span>
-          `}
-        </td>
-      </tr>
-    `).join('');
+    return;
   }
+
+  tbody.innerHTML = accounts.map(acc => `
+    <tr>
+      <td>
+        <strong style="color: var(--primary-neon);">${acc.packageName || acc.packageId}</strong>
+      </td>
+      <td>
+        <code style="color: #fff; font-size: 0.85rem;">${acc.email}</code>
+      </td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <code style="color: #cbd5e1; font-size: 0.85rem;">${acc.password}</code>
+          <button class="btn btn-outline btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="navigator.clipboard.writeText('${acc.password}').then(()=>showToast('Password disalin!'))">Salin</button>
+        </div>
+      </td>
+      <td>
+        <div style="font-size: 0.78rem; color: #fbbf24; font-weight: 700; max-width: 250px;">
+          ${acc.notes || 'tinggal login di carx street ya bosku😇'}
+        </div>
+      </td>
+      <td>
+        <span class="status-pill ${acc.status === 'AVAILABLE' ? 'status-paid' : 'status-unpaid'}">
+          ${acc.status === 'AVAILABLE' ? '⚡ READY (TERSEDIA)' : '✓ TERJUAL'}
+        </span>
+        ${acc.soldToInvoice ? `<div style="font-size: 0.7rem; color: var(--text-dim);">${acc.soldToInvoice}</div>` : ''}
+      </td>
+      <td>
+        ${acc.status === 'AVAILABLE' ? `
+          <button class="btn btn-logout" style="padding: 4px 8px; font-size: 0.75rem;" onclick="handleDeleteAccountStock('${acc.id}')">
+            Hapus
+          </button>
+        ` : `
+          <span style="font-size: 0.75rem; color: var(--text-dim);">Terkirim</span>
+        `}
+      </td>
+    </tr>
+  `).join('');
 }
 
 // Add CarX Street Account to Inventory Form Handler
@@ -3576,74 +3582,54 @@ async function handleAddAccountStock(e) {
   btn.disabled = true;
   btn.textContent = 'Menyimpan Akun...';
 
-  const newAcc = {
-    id: `acc-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-    packageId,
-    packageName,
-    email,
-    password,
-    platform: 'Universal',
-    notes: notes || "tinggal login di carx street ya bosku😇",
-    status: "AVAILABLE",
-    soldToInvoice: null,
-    soldToBuyer: null,
-    createdAt: new Date().toISOString()
-  };
-
-  // 1. Immediately save to local accounts & render table
-  let localAccs = getLocalAccounts();
-  localAccs.unshift(newAcc);
-  setLocalAccounts(localAccs);
-  loadAccountStockTable();
-
-  // 2. Clear inputs
-  document.getElementById('accInputEmail').value = '';
-  document.getElementById('accInputPassword').value = '';
-
-  // 3. Sync to server
   try {
     const res = await fetch('/api/admin/account/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ packageId, email, password, platform: 'Universal', notes })
     });
+
     const data = await res.json();
-    if (data.success && data.data) {
-      newAcc.id = data.data.id || newAcc.id;
+    if (data.success) {
+      document.getElementById('accInputEmail').value = '';
+      document.getElementById('accInputPassword').value = '';
+      showToast(data.message || `Akun CarX Street berhasil ditambahkan!`);
+      await loadAccountStockTable();
+      await loadAdminDashboardData();
+      await loadProducts(); // Sync catalog stock counts!
+    } else {
+      showToast(data.message || 'Gagal menambahkan akun');
     }
   } catch (err) {
-    // Keep local account
+    showToast('Gagal menghubungi server');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
   }
-
-  showToast(`Akun CarX Street berhasil ditambahkan ke stok ${packageName}!`);
-  loadAdminDashboardData();
-  loadProducts(); // Sync catalog stock counts!
-
-  btn.disabled = false;
-  btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
 }
 
 // Delete Unsold Account
 async function handleDeleteAccountStock(id) {
   if (!confirm('Hapus akun CarX Street ini dari stok?')) return;
 
-  // 1. Remove from local accounts
-  let localAccs = getLocalAccounts().filter(a => a.id !== id);
-  setLocalAccounts(localAccs);
-  loadAccountStockTable();
-
-  // 2. Remove from server
   try {
-    await fetch('/api/admin/account/delete', {
+    const res = await fetch('/api/admin/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     });
-  } catch (err) {}
-
-  showToast('Akun berhasil dihapus');
-  loadAdminDashboardData();
-  loadProducts();
+    const data = await res.json();
+    if (data.success) {
+      showToast('Akun berhasil dihapus');
+      await loadAccountStockTable();
+      await loadAdminDashboardData();
+      await loadProducts();
+    } else {
+      showToast(data.message || 'Gagal menghapus akun');
+    }
+  } catch (err) {
+    showToast('Gagal menghubungi server');
+  }
 }
 
 async function loadAdminDashboardData() {
@@ -3661,13 +3647,11 @@ async function loadAdminDashboardData() {
     document.getElementById('dashTotalOrders').textContent = `${data.totalOrders || 0} (${data.paidOrdersCount || 0} Lunas)`;
     document.getElementById('dashTotalBuyers').textContent = `${data.totalBuyers || 0} User`;
 
-    // Calculate real-time stock per package and grand total
+    // Calculate real-time stock per package and grand total directly from synced products
     let grandStock = 0;
-    const localAccs = getLocalAccounts();
     if (data.products) {
       data.products.forEach(p => {
-        const physicalAvailable = localAccs.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
-        const currentStock = Math.max(p.stock || 0, physicalAvailable);
+        const currentStock = parseInt(p.stock, 10) || 0;
         grandStock += currentStock;
         const pill = document.getElementById(`pillStock_${p.id}`);
         if (pill) pill.textContent = `${currentStock} Unit`;

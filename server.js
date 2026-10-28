@@ -463,8 +463,9 @@ const server = http.createServer(async (req, res) => {
 
   // GET /api/admin/dashboard
   if (pathname === '/api/admin/dashboard' && method === 'GET') {
+    syncProductStock();
     const orders = readJsonFile(ORDERS_FILE, []);
-    const products = readJsonFile(PRODUCTS_FILE, []);
+    const products = readJsonFile(PRODUCTS_FILE, defaultProducts);
     const usersList = readJsonFile(USERS_FILE, defaultAdminUser);
 
     const paidOrders = orders.filter(o => o.status === 'PAID');
