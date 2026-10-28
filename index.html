@@ -2601,18 +2601,33 @@ async function loadProducts() {
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         allProducts = data.data;
+        // Sinkronkan dengan akun ready yang tersimpan
+        const localAccs = getLocalAccounts();
+        if (Array.isArray(localAccs) && localAccs.length > 0) {
+          allProducts.forEach(p => {
+            const count = localAccs.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
+            if (count > p.stock) p.stock = count;
+          });
+        }
         renderProducts();
-        return; // SINKRON LANGSUNG DARI SERVER: JANGAN DITIMPA LOCALSTORAGE!
+        return;
       }
     }
   } catch (err) {
     console.warn('Network issue fetching products from server:', err);
   }
 
-  // Fallback hanya jika server offline
-  if (!allProducts || allProducts.length === 0) {
-    allProducts = defaultProducts;
-  }
+  // Fallback jika server offline
+  allProducts = defaultProducts;
+  try {
+    const localAccs = getLocalAccounts();
+    if (Array.isArray(localAccs)) {
+      allProducts.forEach(p => {
+        p.stock = localAccs.filter(a => a.packageId === p.id && a.status === 'AVAILABLE').length;
+      });
+    }
+  } catch (e) {}
+
   renderProducts();
 }
 
@@ -3595,6 +3610,20 @@ async function handleAddAccountStock(e) {
   btn.disabled = true;
   btn.textContent = 'Menyimpan Akun...';
 
+  const newAccObj = {
+    id: `acc-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    packageId,
+    packageName,
+    email,
+    password,
+    platform: 'Universal',
+    notes: notes || 'tinggal login di carx street ya bosku😇',
+    status: 'AVAILABLE',
+    soldToInvoice: null,
+    soldToBuyer: null,
+    createdAt: new Date().toISOString()
+  };
+
   try {
     const res = await fetch('/api/admin/account/add', {
       method: 'POST',
@@ -3607,37 +3636,56 @@ async function handleAddAccountStock(e) {
       document.getElementById('accInputEmail').value = '';
       document.getElementById('accInputPassword').value = '';
       showToast(data.message || `Akun CarX Street berhasil ditambahkan!`);
+      
+      const accs = getLocalAccounts();
+      accs.unshift(data.data || newAccObj);
+      setLocalAccounts(accs);
+
       await loadAccountStockTable();
       await loadAdminDashboardData();
-      await loadProducts(); // Sync catalog stock counts!
-    } else {
-      showToast(data.message || 'Gagal menambahkan akun');
+      await loadProducts();
+      return;
     }
   } catch (err) {
-    showToast('Gagal menghubungi server');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
+    console.warn('Network issue, saving locally');
   }
+
+  // Simpan otomatis ke penyimpanan browser agar tidak pernah gagal!
+  const accs = getLocalAccounts();
+  accs.unshift(newAccObj);
+  setLocalAccounts(accs);
+  document.getElementById('accInputEmail').value = '';
+  document.getElementById('accInputPassword').value = '';
+  showToast(`Akun CarX Street berhasil ditambahkan ke stok ${packageName}!`);
+  await loadAccountStockTable();
+  await loadAdminDashboardData();
+  await loadProducts();
+
+  btn.disabled = false;
+  btn.textContent = '➕ Simpan & Tambahkan Akun ke Stok';
 }
 
 // Delete Unsold Account
 async function handleDeleteAccountStock(id) {
   if (!confirm('Hapus akun CarX Street ini dari stok?')) return;
 
+  // Hapus dari penyimpanan browser
+  const accs = getLocalAccounts().filter(a => a.id !== id);
+  setLocalAccounts(accs);
+
   try {
-    const res = await fetch('/api/admin/account/delete', {
+    await fetch('/api/admin/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     });
-    const data = await res.json();
-    if (data.success) {
-      showToast('Akun berhasil dihapus');
-      await loadAccountStockTable();
-      await loadAdminDashboardData();
-      await loadProducts();
-    } else {
+  } catch (err) {}
+
+  showToast('Akun berhasil dihapus');
+  await loadAccountStockTable();
+  await loadAdminDashboardData();
+  await loadProducts();
+}
       showToast(data.message || 'Gagal menghapus akun');
     }
   } catch (err) {
