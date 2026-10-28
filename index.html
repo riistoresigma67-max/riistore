@@ -1613,15 +1613,6 @@ body {
           </div>
         </div>
       </div>
-
-      <!-- Live Order Ticker -->
-      <div class="live-ticker">
-        <div class="ticker-content">
-          <span class="ticker-badge">LIVE TRANSAKSI</span>
-          <span id="tickerText">Pesanan #RII-9821 baru saja dibeli: Akun CarX Sultan Max (Lunas via QRIS)</span>
-        </div>
-        <div style="font-size: 0.8rem; color: var(--accent-green); font-weight: 700;">● Server Online</div>
-      </div>
     </div>
   </header>
 
@@ -2313,9 +2304,22 @@ body {
         <button class="close-btn" onclick="closeModal('buyerHistoryModal')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.8rem;">
           Berikut adalah riwayat akun CarX Street yang telah berhasil kamu beli di RIISTORE:
         </p>
+
+        <!-- Quick search & claim bar -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px;">
+            🔍 Ada pesanan yang belum muncul? Masukkan No. Invoice / Email / No. WA:
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="buyerOrderSearchInput" placeholder="Contoh: RII-20261028-7196 atau email" style="flex: 1; padding: 7px 10px; font-size: 0.82rem; background: #090e1a; border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+            <button class="btn btn-primary btn-sm" onclick="searchBuyerOrderQuick()" style="padding: 7px 12px; font-size: 0.8rem; white-space: nowrap;">
+              Cari & Klaim
+            </button>
+          </div>
+        </div>
 
         <div id="buyerOrdersList">
           <!-- Loaded via JS -->
@@ -2576,7 +2580,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuth();
   loadStoreConfig();
   loadProducts();
-  startTickerRotation();
 });
 
 // Load Store Config
@@ -2872,6 +2875,7 @@ function generateFallbackOrder(product, whatsapp, email, platform, paymentMethod
 // Display Invoice Screen
 function displayInvoice(order) {
   currentInvoice = order.invoice;
+  saveOrderToLocalStorage(order);
 
   // Reset Views
   document.getElementById('unpaidSection').style.display = 'block';
@@ -3035,6 +3039,7 @@ async function manualCheckPayment() {
 // On Payment Success Event
 function onPaymentSuccess(order) {
   playSuccessSound();
+  saveOrderToLocalStorage(order);
 
   document.getElementById('unpaidSection').style.display = 'none';
   document.getElementById('paidSection').style.display = 'block';
@@ -3995,29 +4000,102 @@ async function saveAdminStoreSettings(e) {
 // BUYER DASHBOARD: RIWAYAT AKUN SAYA
 // ==========================================
 
+// Local Storage Helper for Buyer Orders
+function saveOrderToLocalStorage(order) {
+  if (!order || !order.invoice) return;
+  try {
+    let list = JSON.parse(localStorage.getItem('riistore_my_orders') || '[]');
+    const idx = list.findIndex(o => o.invoice && o.invoice.toUpperCase() === order.invoice.toUpperCase());
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...order };
+    } else {
+      list.unshift(order);
+    }
+    localStorage.setItem('riistore_my_orders', JSON.stringify(list));
+  } catch (e) {}
+}
+
 async function openBuyerHistoryModal() {
   const user = getCurrentUser();
-  if (!user) {
-    showToast('Harap login terlebih dahulu untuk melihat riwayat akun!');
-    openAuthModal('login');
-    return;
-  }
-
   const container = document.getElementById('buyerOrdersList');
-  container.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 2rem;">Memuat akun kamu...</div>';
+  container.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 2rem;"><span class="radar-spinner" style="display:inline-block; vertical-align:middle; width:18px; height:18px; margin-right:8px;"></span>Memuat riwayat akun kamu...</div>';
   openModal('buyerHistoryModal');
 
+  // 1. Ambil pesanan yang tersimpan di browser ini
+  let localOrders = [];
   try {
-    const res = await fetch(`/api/buyer/orders?userId=${encodeURIComponent(user.id)}&email=${encodeURIComponent(user.email)}`);
-    const data = await res.json();
+    localOrders = JSON.parse(localStorage.getItem('riistore_my_orders') || '[]');
+  } catch (e) {}
 
-    if (data.success && data.data && data.data.length > 0) {
-      container.innerHTML = data.data.map(order => `
-        <div style="background: #090e1a; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;">
+  // 2. Ambil pesanan dari server
+  let serverOrders = [];
+  try {
+    const params = new URLSearchParams();
+    if (user) {
+      if (user.id) params.append('userId', user.id);
+      if (user.username) params.append('username', user.username);
+      if (user.email) params.append('email', user.email);
+      if (user.whatsapp) params.append('whatsapp', user.whatsapp);
+      if (user.role) params.append('role', user.role);
+    }
+    const localInvoices = localOrders.map(o => o.invoice).filter(Boolean);
+    if (localInvoices.length > 0) {
+      params.append('invoices', localInvoices.join(','));
+    }
+
+    const res = await fetch(`/api/buyer/orders?${params.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        serverOrders = data.data;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch server orders:', err);
+  }
+
+  // 3. Gabungkan pesanan server & lokal (prioritas data server jika lunas)
+  const map = new Map();
+  serverOrders.forEach(o => {
+    if (o && o.invoice) map.set(o.invoice.toUpperCase(), o);
+  });
+  localOrders.forEach(o => {
+    if (o && o.invoice) {
+      const key = o.invoice.toUpperCase();
+      if (!map.has(key)) {
+        map.set(key, o);
+      } else {
+        const existing = map.get(key);
+        if (!existing.accountDetails && o.accountDetails) {
+          map.set(key, { ...existing, accountDetails: o.accountDetails });
+        }
+      }
+    }
+  });
+
+  const allOrders = Array.from(map.values());
+  try {
+    localStorage.setItem('riistore_my_orders', JSON.stringify(allOrders));
+  } catch (e) {}
+
+  renderBuyerOrdersList(allOrders);
+}
+
+function renderBuyerOrdersList(orders) {
+  const container = document.getElementById('buyerOrdersList');
+  if (!container) return;
+
+  if (orders && orders.length > 0) {
+    container.innerHTML = orders.map(order => {
+      const isPaid = order.status === 'PAID';
+      const creds = order.accountDetails || null;
+
+      return `
+        <div style="background: #090e1a; border: 1px solid ${isPaid ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-color)'}; border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="color: #fff; font-family: monospace;">${order.invoice}</strong>
-            <span class="status-pill ${order.status === 'PAID' ? 'status-paid' : 'status-unpaid'}">
-              ${order.status === 'PAID' ? '✓ LUNAS' : 'MENUNGGU PEMBAYARAN'}
+            <strong style="color: #fff; font-family: monospace; font-size: 0.95rem;">${order.invoice}</strong>
+            <span class="status-pill ${isPaid ? 'status-paid' : 'status-unpaid'}" style="font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: 800;">
+              ${isPaid ? '✓ LUNAS' : 'MENUNGGU PEMBAYARAN'}
             </span>
           </div>
 
@@ -4025,45 +4103,110 @@ async function openBuyerHistoryModal() {
             ${order.productName}
           </div>
           <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;">
-            Total: ${formatRupiah(order.totalPayment || order.price)} • ${new Date(order.createdAt).toLocaleDateString('id-ID')}
+            Total: ${formatRupiah(order.totalPayment || order.price)} • ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('id-ID') : '-'}
           </div>
 
-          ${order.status === 'PAID' && order.accountDetails ? `
-            <div style="margin-top: 10px; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--accent-green); border-radius: var(--radius-sm); padding: 10px; font-size: 0.82rem;">
-              <div style="color: var(--accent-green); font-weight: 800; margin-bottom: 4px;">🎮 Data Login Akun CarX Street Kamu:</div>
-              <div><strong>Email/ID:</strong> <code style="color: #fff;">${order.accountDetails.username || '-'}</code></div>
-              <div><strong>Password:</strong> <code style="color: #fff;">${order.accountDetails.password || '-'}</code></div>
+          ${isPaid && creds ? `
+            <div style="margin-top: 12px; background: rgba(16, 185, 129, 0.08); border: 1.5px solid var(--accent-green); border-radius: var(--radius-sm); padding: 12px; font-size: 0.85rem;">
+              <div style="color: var(--accent-green); font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span>🎮</span> DATA LOGIN AKUN CARX STREET KAMU:
+              </div>
               
-              <div style="margin-top: 8px; background: rgba(245, 158, 11, 0.15); border: 1.5px dashed #f59e0b; border-radius: var(--radius-sm); padding: 8px; text-align: center; font-size: 0.9rem; font-weight: 800; color: #fff;">
-                📌 Catatan Admin: ${order.accountDetails.notes || 'tinggal login di carx street ya bosku😇'}
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #060913; padding: 8px 10px; border-radius: 4px; margin-bottom: 6px;">
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px;">
+                  <span style="color: var(--text-dim); font-size: 0.75rem; display: block;">EMAIL / ID LOGIN:</span>
+                  <strong style="color: #fff; font-family: monospace; font-size: 0.95rem;">${creds.username || creds.email || '-'}</strong>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="copyTextDirect('${creds.username || creds.email || ''}')" style="padding: 4px 10px; font-size: 0.75rem;">
+                  Salin
+                </button>
               </div>
 
-              <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">${order.accountDetails.instructions || ''}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #060913; padding: 8px 10px; border-radius: 4px; margin-bottom: 8px;">
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px;">
+                  <span style="color: var(--text-dim); font-size: 0.75rem; display: block;">PASSWORD AKUN:</span>
+                  <strong style="color: #fff; font-family: monospace; font-size: 0.95rem;">${creds.password || '-'}</strong>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="copyTextDirect('${creds.password || ''}')" style="padding: 4px 10px; font-size: 0.75rem;">
+                  Salin
+                </button>
+              </div>
+              
+              <div style="background: rgba(245, 158, 11, 0.15); border: 1.5px dashed #f59e0b; border-radius: var(--radius-sm); padding: 8px; text-align: center; font-size: 0.9rem; font-weight: 800; color: #fff; margin-top: 6px;">
+                📌 Catatan Admin: ${creds.notes || 'tinggal login di carx street ya bosku😇'}
+              </div>
+
+              <div style="margin-top: 8px; font-size: 0.78rem; color: #cbd5e1; white-space: pre-line; line-height: 1.4;">${creds.instructions || ''}</div>
             </div>
           ` : `
-            <button class="btn btn-primary btn-sm" style="margin-top: 10px; width: 100%;" onclick="viewOrderInvoice('${order.invoice}')">
-              Lanjutkan Pembayaran ➔
+            <button class="btn btn-primary btn-sm" style="margin-top: 10px; width: 100%; font-weight: 800;" onclick="viewOrderInvoice('${order.invoice}')">
+              ${isPaid ? 'Lihat Detail Akun ➔' : 'Lanjutkan Pembayaran ➔'}
             </button>
           `}
         </div>
-      `).join('');
-    } else {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 2.5rem; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md);">
-          <div style="font-size: 2rem; margin-bottom: 8px;">🏎️</div>
-          <p style="font-size: 0.95rem; color: #fff; font-weight: 700;">Kamu Belum Membeli Akun</p>
-          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-            Pilih Paket A, B, C, D, atau E di katalog untuk mulai balapan!
-          </p>
-          <button class="btn btn-primary btn-sm" onclick="closeModal('buyerHistoryModal')">
-            Lihat Katalog Paket ➔
-          </button>
-        </div>
       `;
+    }).join('');
+  } else {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 2.5rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-md);">
+        <div style="font-size: 2.2rem; margin-bottom: 8px;">🏎️</div>
+        <p style="font-size: 1rem; color: #fff; font-weight: 700; margin-bottom: 4px;">Belum Ada Riwayat Akun</p>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Jika kamu baru saja transfer, gunakan kotak pencarian di atas untuk memasukkan No Invoice atau Email kamu.
+        </p>
+        <button class="btn btn-primary btn-sm" onclick="closeModal('buyerHistoryModal')">
+          Lihat Katalog Paket ➔
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Quick Search & Claim Helper in Buyer History Modal
+async function searchBuyerOrderQuick() {
+  const inputEl = document.getElementById('buyerOrderSearchInput');
+  const query = (inputEl ? inputEl.value : '').trim();
+  if (!query) {
+    showToast('Ketik No Invoice (misal RII-...) atau No WA / Email kamu');
+    return;
+  }
+
+  showToast('🔍 Mencari data akun...');
+  try {
+    const res = await fetch(`/api/order/track?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+      data.data.forEach(saveOrderToLocalStorage);
+      showToast(`✓ Berhasil menemukan ${data.data.length} pesanan!`);
+      if (inputEl) inputEl.value = '';
+      openBuyerHistoryModal();
+    } else {
+      if (query.toUpperCase().startsWith('RII-')) {
+        const sRes = await fetch(`/api/order/status?invoice=${encodeURIComponent(query)}`);
+        const sData = await sRes.json();
+        if (sData.success && sData.data) {
+          saveOrderToLocalStorage(sData.data);
+          showToast('✓ Pesanan berhasil ditemukan dan ditambahkan!');
+          if (inputEl) inputEl.value = '';
+          openBuyerHistoryModal();
+          return;
+        }
+      }
+      showToast('Pesanan tidak ditemukan. Periksa kembali No Invoice atau Email kamu.');
     }
   } catch (err) {
-    container.innerHTML = '<div style="color: var(--accent-red); text-align: center;">Gagal memuat riwayat pembelian.</div>';
+    showToast('Gagal menghubungi server: ' + err.message);
   }
+}
+
+// Copy text direct helper
+function copyTextDirect(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✓ Berhasil disalin ke clipboard!');
+  }).catch(() => {
+    showToast('Gagal menyalin text');
+  });
 }
 
 // Toast System
@@ -4081,30 +4224,6 @@ function showToast(message) {
     toast.style.transform = 'translateY(10px)';
     setTimeout(() => toast.remove(), 300);
   }, 3500);
-}
-
-// Live Social Proof Ticker Rotation
-function startTickerRotation() {
-  const ticker = document.getElementById('tickerText');
-  if (!ticker) return;
-
-  const activities = [
-    "Pesanan #RII-9821 baru saja dibeli: PAKET E (36 Mobil + Aksesoris) Lunas via QRIS",
-    "0813****1290 baru saja membeli: PAKET A (Silver 3M + Gold 3K) Lunas via DANA QRIS",
-    "0878****4421 baru saja membeli: PAKET C (Silver 8M + Gold 8K) Lunas via BCA Virtual Account",
-    "0821****8911 baru saja membeli: PAKET D (Silver 12M + Gold 12K) Lunas via BRI BRIVA",
-    "0857****7732 baru saja membeli: PAKET B (Silver 5M + Gold 5K) Lunas via Mandiri VA"
-  ];
-
-  let idx = 0;
-  setInterval(() => {
-    idx = (idx + 1) % activities.length;
-    ticker.style.opacity = '0';
-    setTimeout(() => {
-      ticker.textContent = activities[idx];
-      ticker.style.opacity = '1';
-    }, 400);
-  }, 5000);
 }
 
 </script>

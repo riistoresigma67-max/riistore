@@ -1015,18 +1015,46 @@ const requestHandler = async (req, res) => {
     return;
   }
 
-  // GET /api/buyer/orders?userId=...
+  // GET /api/buyer/orders?userId=...&email=...&username=...&whatsapp=...&invoices=...
   if (pathname === '/api/buyer/orders' && method === 'GET') {
-    const userId = parsedUrl.query.userId;
-    const userEmail = parsedUrl.query.email;
+    const userId = (parsedUrl.query.userId || '').trim().toLowerCase();
+    const userEmail = (parsedUrl.query.email || '').trim().toLowerCase();
+    const username = (parsedUrl.query.username || '').trim().toLowerCase();
+    const userWa = (parsedUrl.query.whatsapp || '').replace(/\D/g, '');
+    const userRole = (parsedUrl.query.role || '').trim().toLowerCase();
+    const requestedInvoices = (parsedUrl.query.invoices || '').split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
 
     const orders = readJsonFile(ORDERS_FILE, []);
-    const userOrders = orders.filter(o => 
-      (userId && o.buyerId === userId) ||
-      (userEmail && o.customerEmail.toLowerCase() === userEmail.toLowerCase())
-    );
 
-    sendJson(res, 200, { success: true, data: userOrders });
+    let matched = [];
+    if (userRole === 'admin') {
+      matched = orders;
+    } else {
+      matched = orders.filter(o => {
+        const oInvoice = (o.invoice || '').toUpperCase();
+        if (requestedInvoices.includes(oInvoice)) return true;
+
+        const oBuyerId = (o.buyerId || '').toLowerCase();
+        if (userId && (oBuyerId === userId || oBuyerId === username || oBuyerId === userEmail)) return true;
+
+        const oBuyerUsername = (o.buyerUsername || '').toLowerCase();
+        if (username && (oBuyerUsername === username || oBuyerUsername === userId)) return true;
+
+        const oEmail = (o.customerEmail || '').toLowerCase();
+        if (userEmail && (oEmail === userEmail || oBuyerId === userEmail || oEmail.includes(userEmail) || userEmail.includes(oEmail))) return true;
+
+        const oWa = (o.customerWhatsapp || '').replace(/\D/g, '');
+        if (userWa && oWa && (oWa.includes(userWa) || userWa.includes(oWa))) return true;
+
+        const oWaRaw = (o.customerWhatsapp || '').toLowerCase();
+        if (userEmail && oWaRaw === userEmail) return true;
+        if (username && oWaRaw === username) return true;
+
+        return false;
+      });
+    }
+
+    sendJson(res, 200, { success: true, data: matched });
     return;
   }
 
