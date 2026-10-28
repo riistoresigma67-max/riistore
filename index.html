@@ -1720,19 +1720,18 @@ body {
         </div>
 
         <div class="footer-col">
-          <h5>Bantuan & Admin</h5>
+          <h5>Bantuan & Akun</h5>
           <ul class="footer-links">
             <li><a href="javascript:void(0)" onclick="openTrackModal()">Lacak Pesanan</a></li>
-            <li><a href="javascript:void(0)" onclick="openEduModal()">Cara Pembayaran Otomatis</a></li>
-            <li><a href="https://wa.me/6281234567890" target="_blank">WhatsApp Dukungan Pelanggan</a></li>
-            <li><a href="javascript:void(0)" onclick="openAdminModal()">Pengaturan Admin</a></li>
+            <li><a href="https://wa.me/6281234567890" target="_blank">WhatsApp Admin RIISTORE</a></li>
+            <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Masuk / Daftar Akun</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
         <div>&copy; 2026 RIISTORE. All rights reserved. CarX Street is a trademark of CarX Technologies.</div>
-        <div>Sistem Pembayaran Didukung QRIS Dinamis & Bank VA</div>
+        <div>Sistem Pembayaran Resmi Menggunakan QRIS Real-Time (Semua Bank & E-Wallet)</div>
       </div>
     </div>
   </footer>
@@ -1771,71 +1770,21 @@ body {
             <input type="email" id="custEmail" class="form-input" placeholder="nama@gmail.com">
           </div>
 
-          <!-- Payment Methods -->
+          <!-- Payment Methods: QRIS Exclusive -->
           <div class="form-group">
-            <label class="form-label">Pilih Metode Pembayaran (Semua Otomatis)</label>
-            <div class="payment-methods-grid">
-
-              <!-- QRIS Dinamis (Recommended) -->
-              <div class="payment-option selected" onclick="selectPaymentMethod('QRIS', this)">
-                <div class="pay-left">
-                  <div class="pay-icon-box qris-icon">QRIS</div>
-                  <div>
-                    <div class="pay-title">QRIS Dinamis (Rekomendasi)</div>
-                    <div class="pay-subtitle">DANA, GoPay, OVO, ShopeePay, BCA, BRI, Mandiri</div>
-                  </div>
+            <label class="form-label">Metode Pembayaran (Khusus QRIS Real-Time)</label>
+            <div class="payment-option selected" style="cursor: default; border: 2px solid var(--primary-neon); background: rgba(0, 240, 255, 0.08);">
+              <div class="pay-left">
+                <div class="pay-icon-box qris-icon" style="background: var(--primary-neon); color: #050811; font-weight: 900;">QRIS</div>
+                <div>
+                  <div class="pay-title" style="color: #fff; font-weight: 800;">QRIS Dinamis (Semua Pembayaran)</div>
+                  <div class="pay-subtitle">BCA, Mandiri, BRI, BNI, DANA, GoPay, OVO, ShopeePay & Semua M-Banking</div>
                 </div>
-                <span class="auto-badge">⚡ Instan</span>
               </div>
-
-              <!-- BCA Virtual Account -->
-              <div class="payment-option" onclick="selectPaymentMethod('VA_BCA', this)">
-                <div class="pay-left">
-                  <div class="pay-icon-box" style="color: #00569c; font-weight: 900;">BCA</div>
-                  <div>
-                    <div class="pay-title">BCA Virtual Account</div>
-                    <div class="pay-subtitle">Verifikasi otomatis via BCA Mobile / myBCA / KlikBCA</div>
-                  </div>
-                </div>
-                <span class="auto-badge">⚡ Otomatis</span>
-              </div>
-
-              <!-- BRI Virtual Account -->
-              <div class="payment-option" onclick="selectPaymentMethod('VA_BRI', this)">
-                <div class="pay-left">
-                  <div class="pay-icon-box" style="color: #00529c; font-weight: 900;">BRI</div>
-                  <div>
-                    <div class="pay-title">BRI Virtual Account (BRIVA)</div>
-                    <div class="pay-subtitle">Verifikasi otomatis via BRImo / ATM BRI</div>
-                  </div>
-                </div>
-                <span class="auto-badge">⚡ Otomatis</span>
-              </div>
-
-              <!-- Mandiri Virtual Account -->
-              <div class="payment-option" onclick="selectPaymentMethod('VA_MANDIRI', this)">
-                <div class="pay-left">
-                  <div class="pay-icon-box" style="color: #f59e0b; font-weight: 900;">MDR</div>
-                  <div>
-                    <div class="pay-title">Mandiri Virtual Account</div>
-                    <div class="pay-subtitle">Verifikasi otomatis via Livin' by Mandiri</div>
-                  </div>
-                </div>
-                <span class="auto-badge">⚡ Otomatis</span>
-              </div>
-
-              <!-- E-Wallet Direct -->
-              <div class="payment-option" onclick="selectPaymentMethod('EWALLET_DANA', this)">
-                <div class="pay-left">
-                  <div class="pay-icon-box" style="color: #118eea; font-weight: 900;">DANA</div>
-                  <div>
-                    <div class="pay-title">E-Wallet DANA Instan</div>
-                    <div class="pay-subtitle">Scan QRIS / Deeplink DANA</div>
-                  </div>
-                </div>
-                <span class="auto-badge">⚡ Otomatis</span>
-              </div>
-
+              <span class="auto-badge" style="background: var(--accent-green); color: #050811; font-weight: 800;">⚡ Instan</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 6px;">
+              💡 <em>Tinggal buka aplikasi Bank atau E-Wallet apa saja di HP, scan kode QRIS, langsung terverifikasi otomatis.</em>
             </div>
           </div>
 
@@ -2069,10 +2018,6 @@ body {
           <button type="submit" id="btnLoginSubmit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
             Masuk Sekarang ➔
           </button>
-          <div class="admin-login-hint">
-            👑 <strong>Akses Khusus Admin:</strong><br>
-            Email: <code>admin</code> • Password: <code>admin123</code>
-          </div>
         </form>
 
         <!-- FORM REGISTER (BUYER) -->
