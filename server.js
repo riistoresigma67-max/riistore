@@ -11,10 +11,7 @@ const url = require('url');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
-let DATA_DIR = path.join(__dirname, 'data');
-if (process.env.VERCEL) {
-  DATA_DIR = path.join('/tmp', 'data');
-}
+const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'data');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // Ensure data directory exists safely
@@ -1018,37 +1015,25 @@ const requestHandler = async (req, res) => {
     safePath = '/index.html';
   }
 
-  // Look in PUBLIC_DIR first, then root __dirname
   let filePath = path.join(PUBLIC_DIR, safePath);
   if (!fs.existsSync(filePath)) {
     filePath = path.join(__dirname, safePath);
   }
 
-  const ext = path.extname(filePath).toLowerCase();
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, 'index.html');
+  }
 
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      let fallbackPath = path.join(PUBLIC_DIR, 'index.html');
-      if (!fs.existsSync(fallbackPath)) {
-        fallbackPath = path.join(__dirname, 'index.html');
-      }
-      fs.readFile(fallbackPath, (err2, content) => {
-        if (err2) {
-          res.writeHead(404, { 'Content-Type': 'text/plain' });
-          res.end('404 Not Found');
-        } else {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(content);
-        }
-      });
-      return;
-    }
-
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  try {
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'text/html; charset=utf-8';
+    const content = fs.readFileSync(filePath);
     res.writeHead(200, { 'Content-Type': contentType });
-    const stream = fs.createReadStream(filePath);
-    stream.pipe(res);
-  });
+    res.end(content);
+  } catch (err) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('404 Not Found');
+  }
 };
 
 const server = http.createServer(requestHandler);
